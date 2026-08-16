@@ -8,7 +8,7 @@
         @endif
     </button>
 
-    <div x-cloak x-show="notificationOpen" x-transition.origin.top.right @click.outside="notificationOpen = false" class="absolute right-0 z-50 mt-3 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl">
+    <div x-cloak x-show="notificationOpen" x-transition.origin.top.right @click.outside="notificationOpen = false" class="fixed left-4 right-4 top-20 z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-96">
         <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div>
                 <p class="font-extrabold text-slate-900">Notifikasi</p>

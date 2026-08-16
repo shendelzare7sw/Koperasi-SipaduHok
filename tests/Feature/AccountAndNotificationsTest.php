@@ -77,6 +77,27 @@ class AccountAndNotificationsTest extends TestCase
         $this->assertNotNull($notification->fresh()->read_at);
     }
 
+    public function test_mobile_header_has_notification_and_account_dropdowns_for_both_roles(): void
+    {
+        $buyer = User::factory()->create();
+        $admin = User::factory()->admin()->create();
+
+        foreach ([
+            [$buyer, route('buyer.dashboard')],
+            [$buyer, route('cart.index')],
+            [$admin, route('admin.dashboard')],
+            [$admin, route('admin.products.index')],
+        ] as [$user, $url]) {
+            $this->actingAs($user)
+                ->get($url)
+                ->assertOk()
+                ->assertSee('data-mobile-header-actions', false)
+                ->assertSee('aria-label="Buka notifikasi"', false)
+                ->assertSee('aria-label="Buka menu akun"', false)
+                ->assertSee('aria-label="Buka menu utama"', false);
+        }
+    }
+
     private function createOrder(User $buyer): Order
     {
         $courier = Courier::create([

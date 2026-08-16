@@ -23,7 +23,7 @@
                 <span class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1 shadow-sm">
                     <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-full w-full object-contain">
                 </span>
-                <span>
+                <span class="hidden sm:block">
                     <span class="block text-base font-extrabold leading-tight">Koperasi Sipaduhok</span>
                     <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah</span>
                 </span>
@@ -59,10 +59,16 @@
                 @endauth
             </nav>
 
-            <button type="button" @click="open = ! open" class="grid h-11 w-11 place-items-center rounded-xl border border-white/30 text-white lg:hidden" aria-label="Buka menu" :aria-expanded="open">
-                <svg x-show="! open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                <svg x-cloak x-show="open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
-            </button>
+            <div class="ml-auto flex shrink-0 items-center gap-2 lg:hidden" data-mobile-header-actions>
+                @auth
+                    @include('components.notification-dropdown')
+                    @include('components.account-dropdown')
+                @endauth
+                <button type="button" @click="open = ! open" class="grid h-11 w-11 place-items-center rounded-xl border border-white/30 text-white" aria-label="Buka menu utama" :aria-expanded="open">
+                    <svg x-show="! open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    <svg x-cloak x-show="open" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+                </button>
+            </div>
             </div>
 
             <nav x-cloak x-show="open" x-transition class="grid gap-1 border-t border-white/20 py-3 text-sm lg:hidden">

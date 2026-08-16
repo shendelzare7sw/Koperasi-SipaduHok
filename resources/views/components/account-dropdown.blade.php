@@ -5,7 +5,7 @@
         <i class="fas fa-chevron-down text-[10px] transition" :class="accountOpen && 'rotate-180'" aria-hidden="true"></i>
     </button>
 
-    <div x-cloak x-show="accountOpen" x-transition.origin.top.right @click.outside="accountOpen = false" class="absolute right-0 z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl">
+    <div x-cloak x-show="accountOpen" x-transition.origin.top.right @click.outside="accountOpen = false" class="fixed left-4 right-4 top-20 z-50 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-64">
         <div class="bg-gradient-to-r from-primary to-secondary px-4 py-4 text-white">
             <p class="truncate font-extrabold">{{ auth()->user()->name }}</p>
             <p class="mt-0.5 truncate text-xs text-blue-100">{{ auth()->user()->email }}</p>

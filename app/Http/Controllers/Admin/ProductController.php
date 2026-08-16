@@ -109,10 +109,13 @@ class ProductController extends Controller
             'category' => ['required', Rule::in(array_keys(Product::CATEGORIES))],
             'custom_category' => ['nullable', 'required_if:category,lainnya', 'string', 'max:100'],
             'images' => ['nullable', 'array', 'max:5'],
-            'images.*' => ['required', 'image', 'max:3072'],
+            'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
         ], [
             'custom_category.required_if' => 'Tuliskan nama kategori tambahan untuk pilihan Lainnya.',
             'custom_category.max' => 'Nama kategori tambahan maksimal 100 karakter.',
+            'images.*.image' => 'Foto produk harus berupa gambar yang valid.',
+            'images.*.mimes' => 'Foto produk hanya mendukung JPG, JPEG, PNG, atau WebP.',
+            'images.*.max' => 'Ukuran setiap foto produk maksimal 3 MB.',
         ]);
 
         $validated['custom_category'] = $validated['category'] === 'lainnya'

@@ -41,7 +41,10 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Relative by default so uploaded files always use the active host
+            // and protocol (local, production, or reverse proxy) instead of a
+            // stale APP_URL value cached during deployment.
+            'url' => rtrim((string) env('PUBLIC_STORAGE_URL', '/storage'), '/'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

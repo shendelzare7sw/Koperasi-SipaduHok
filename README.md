@@ -159,3 +159,5 @@ tests/Feature/
 ```
 
 Untuk produksi, arahkan document root subdomain ke folder `public`, bukan root repository.
+
+URL file upload menggunakan path same-origin `/storage/...` melalui `PUBLIC_STORAGE_URL=/storage`. Dengan demikian katalog tidak bergantung pada nilai `APP_URL` untuk menampilkan foto. `APP_URL` production tetap harus diisi `https://koperasi.sipaduhok.id` karena dipakai Laravel untuk URL email dan proses CLI.

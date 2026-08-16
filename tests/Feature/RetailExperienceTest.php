@@ -101,6 +101,29 @@ class RetailExperienceTest extends TestCase
             ->assertSee('fa-magnifying-glass-plus', false);
     }
 
+    public function test_product_images_use_same_origin_storage_urls_instead_of_app_url(): void
+    {
+        config()->set('app.url', 'http://koperasi-sipaduhok.test');
+        $product = Product::factory()->create([
+            'name' => 'Produk URL Storage',
+            'slug' => 'produk-url-storage',
+            'image_path' => 'products/contoh.webp',
+            'is_active' => true,
+        ]);
+
+        $this->assertSame('/storage/products/contoh.webp', Storage::disk('public')->url($product->image_path));
+
+        $this->get(route('catalog.index'))
+            ->assertOk()
+            ->assertSee('src="/storage/products/contoh.webp"', false)
+            ->assertDontSee('http://koperasi-sipaduhok.test/storage/products/contoh.webp', false);
+
+        $this->get(route('catalog.show', $product))
+            ->assertOk()
+            ->assertSee('\/storage\/products\/contoh.webp', false)
+            ->assertDontSee('http://koperasi-sipaduhok.test/storage/products/contoh.webp', false);
+    }
+
     public function test_completed_order_allows_verified_review_and_admin_reply(): void
     {
         $buyer = User::factory()->create();

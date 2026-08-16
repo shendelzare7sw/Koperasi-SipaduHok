@@ -13,9 +13,11 @@ use Illuminate\Validation\ValidationException;
 
 class OrderWorkflowService
 {
+    public function __construct(private readonly OrderNotificationService $notifications) {}
+
     public function confirmPayment(Order $order, User $actor): Order
     {
-        return DB::transaction(function () use ($order, $actor) {
+        $updatedOrder = DB::transaction(function () use ($order, $actor) {
             $lockedOrder = Order::query()->with('items')->lockForUpdate()->findOrFail($order->id);
 
             if ($lockedOrder->status !== OrderStatus::PendingPayment
@@ -46,11 +48,15 @@ class OrderWorkflowService
 
             return $lockedOrder->fresh(['items', 'buyer']);
         });
+
+        $this->notifications->paymentConfirmed($updatedOrder);
+
+        return $updatedOrder;
     }
 
     public function transition(Order $order, OrderStatus $target, User $actor, ?string $note = null): Order
     {
-        return DB::transaction(function () use ($order, $target, $actor, $note) {
+        $updatedOrder = DB::transaction(function () use ($order, $target, $actor, $note) {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
             $from = $lockedOrder->status;
             $allowedTargets = $this->allowedTargets($lockedOrder);
@@ -75,6 +81,14 @@ class OrderWorkflowService
 
             return $lockedOrder->fresh(['items', 'buyer', 'histories.actor']);
         });
+
+        if ($target === OrderStatus::Completed) {
+            $this->notifications->receiptConfirmed($updatedOrder);
+        } else {
+            $this->notifications->statusChanged($updatedOrder);
+        }
+
+        return $updatedOrder;
     }
 
     /** @return list<OrderStatus> */
@@ -91,7 +105,7 @@ class OrderWorkflowService
 
     public function markDelivered(Order $order, User $actor, string $proofPath, ?string $note = null): Order
     {
-        return DB::transaction(function () use ($order, $actor, $proofPath, $note) {
+        $updatedOrder = DB::transaction(function () use ($order, $actor, $proofPath, $note) {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
 
             if ($lockedOrder->status !== OrderStatus::OutForDelivery) {
@@ -119,6 +133,10 @@ class OrderWorkflowService
 
             return $lockedOrder->fresh(['items', 'buyer', 'histories.actor']);
         });
+
+        $this->notifications->statusChanged($updatedOrder);
+
+        return $updatedOrder;
     }
 
     private function record(

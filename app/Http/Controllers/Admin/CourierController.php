@@ -17,6 +17,12 @@ class CourierController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
+        $request->merge([
+            'fee' => is_string($request->input('fee'))
+                ? str_replace('.', '', trim($request->input('fee')))
+                : $request->input('fee'),
+        ]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'fee' => ['required', 'integer', 'min:0'],

@@ -1,50 +1,111 @@
 <?php
 
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Admin\BuyerController as AdminBuyerController;
 use App\Http\Controllers\Admin\CourierController as AdminCourierController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\ProductImportController as AdminProductImportController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\SalesReportController as AdminSalesReportController;
+use App\Http\Controllers\Admin\StoreSettingController as AdminStoreSettingController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BuyerDashboardController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\MidtransNotificationController;
+use App\Http\Controllers\NewPasswordController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PasswordResetLinkController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/produk/{product:slug}', [CatalogController::class, 'show'])->name('catalog.show');
+Route::get('/tentang-koperasi', [PageController::class, 'about'])->name('pages.about');
+Route::get('/pusat-bantuan', [PageController::class, 'help'])->name('pages.help');
+Route::get('/cara-pembayaran', [PageController::class, 'payment'])->name('pages.payment');
+Route::get('/kebijakan-pengiriman', [PageController::class, 'shipping'])->name('pages.shipping');
+Route::get('/kebijakan-pengembalian', [PageController::class, 'returns'])->name('pages.returns');
+Route::get('/kebijakan-privasi', [PageController::class, 'privacy'])->name('pages.privacy');
+Route::get('/syarat-ketentuan', [PageController::class, 'terms'])->name('pages.terms');
+Route::post('/payments/midtrans/notification', MidtransNotificationController::class)->name('payments.midtrans.notification');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.store');
     Route::get('/daftar', [AuthController::class, 'registerForm'])->name('register');
     Route::post('/daftar', [AuthController::class, 'register'])->name('register.store');
+    Route::get('/lupa-kata-sandi', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/lupa-kata-sandi', [PasswordResetLinkController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/atur-ulang-kata-sandi/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/atur-ulang-kata-sandi', [NewPasswordController::class, 'store'])->name('password.update');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/akun/profil', [AccountController::class, 'editProfile'])->name('account.profile.edit');
+    Route::patch('/akun/profil', [AccountController::class, 'updateProfile'])->name('account.profile.update');
+    Route::get('/akun/keamanan', [AccountController::class, 'editSecurity'])->name('account.security.edit');
+    Route::put('/akun/keamanan', [AccountController::class, 'updatePassword'])->name('account.security.update');
+    Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifikasi/baca-semua', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('/notifikasi/{notification}/buka', [NotificationController::class, 'open'])->name('notifications.open');
 });
 
 Route::middleware(['auth', 'role:pembeli'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', BuyerDashboardController::class)->name('buyer.dashboard');
+    Route::get('/akun/alamat', [AddressController::class, 'index'])->name('account.addresses.index');
+    Route::post('/akun/alamat', [AddressController::class, 'store'])->name('account.addresses.store');
+    Route::put('/akun/alamat/{address}', [AddressController::class, 'update'])->name('account.addresses.update');
+    Route::patch('/akun/alamat/{address}/utama', [AddressController::class, 'setPrimary'])->name('account.addresses.primary');
+    Route::delete('/akun/alamat/{address}', [AddressController::class, 'destroy'])->name('account.addresses.destroy');
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
+    Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
     Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
     Route::post('/keranjang/{product}', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/keranjang/item/{cartItem}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/keranjang/item/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/beli-langsung/{product}', [CheckoutController::class, 'buyNow'])->name('checkout.buy-now');
     Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::get('/pesanan', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/pesanan/{order}/pembayaran', [OrderController::class, 'payment'])->name('orders.payment');
+    Route::post('/pesanan/{order}/sinkronkan-pembayaran', [OrderController::class, 'syncPayment'])->name('orders.sync-payment');
     Route::get('/pesanan/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::post('/pesanan/{order}/konfirmasi-terima', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
+    Route::get('/pesanan/item/{orderItem}/ulasan', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::post('/pesanan/item/{orderItem}/ulasan', [ReviewController::class, 'store'])->name('reviews.store');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', AdminDashboardController::class)->name('dashboard');
+    Route::get('/products/import', [AdminProductImportController::class, 'index'])->name('products.import.index');
+    Route::get('/products/import/template', [AdminProductImportController::class, 'downloadTemplate'])->name('products.import.template');
+    Route::post('/products/import', [AdminProductImportController::class, 'store'])->name('products.import.store');
     Route::resource('products', AdminProductController::class)->except('show');
+    Route::delete('/products/{product}/images/{productImage}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
+    Route::get('/buyers', [AdminBuyerController::class, 'index'])->name('buyers.index');
+    Route::get('/reports/sales', AdminSalesReportController::class)->name('reports.sales');
     Route::get('/courier', [AdminCourierController::class, 'edit'])->name('courier.edit');
     Route::put('/courier', [AdminCourierController::class, 'update'])->name('courier.update');
+    Route::get('/settings/store', [AdminStoreSettingController::class, 'edit'])->name('settings.store.edit');
+    Route::put('/settings/store', [AdminStoreSettingController::class, 'update'])->name('settings.store.update');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
+    Route::get('/orders/{order}/label', [AdminOrderController::class, 'label'])->name('orders.label');
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/confirm-payment', [AdminOrderController::class, 'confirmPayment'])->name('orders.confirm-payment');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('/orders/{order}/delivered', [AdminOrderController::class, 'markDelivered'])->name('orders.mark-delivered');
+    Route::post('/reviews/{review}/reply', [AdminReviewController::class, 'reply'])->name('reviews.reply');
 });

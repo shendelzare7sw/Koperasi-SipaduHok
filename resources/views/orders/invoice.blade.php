@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Invoice {{ $order->invoice_number }}</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}?v=2">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-slate-100 p-4 text-slate-900 sm:p-8 print:bg-white print:p-0">
@@ -15,12 +17,12 @@
     @endphp
     <div class="mx-auto mb-4 flex max-w-4xl justify-between print:hidden">
         <a href="{{ $backUrl }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold">Kembali</a>
-        <button onclick="window.print()" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white">Cetak Invoice</button>
+        <button onclick="window.print()" class="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white">Cetak Invoice</button>
     </div>
     <main class="mx-auto max-w-4xl rounded-2xl bg-white p-6 shadow-sm sm:p-10 print:max-w-none print:rounded-none print:p-0 print:shadow-none">
-        <header class="flex flex-col gap-5 border-b-4 border-orange-500 pb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-center gap-3"><div class="grid h-12 w-12 place-items-center rounded-xl bg-slate-900 font-black text-orange-400">KS</div><div><h1 class="text-xl font-black">Koperasi Sipaduhok</h1><p class="text-sm text-slate-500">koperasi.sipaduhok.id</p></div></div>
-            <div class="sm:text-right"><p class="text-xs font-bold uppercase tracking-widest text-orange-600">Invoice</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p><p class="text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} WIB</p></div>
+        <header class="flex flex-col gap-5 border-b-4 border-primary pb-6 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex items-center gap-3"><div class="grid h-14 w-14 place-items-center overflow-hidden rounded-xl bg-primary p-1"><img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-full w-full object-contain"></div><div><h1 class="text-xl font-black">Koperasi Sipaduhok</h1><p class="text-sm text-slate-500">koperasi.sipaduhok.id</p></div></div>
+            <div class="sm:text-right"><p class="text-xs font-bold uppercase tracking-widest text-primary">Invoice</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p><p class="text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} WIB</p></div>
         </header>
 
         <section class="mt-6 grid gap-4 sm:grid-cols-2">

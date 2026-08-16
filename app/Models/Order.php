@@ -61,6 +61,11 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class)->oldest();
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     public function statusLabel(): string
     {
         return $this->status->label();

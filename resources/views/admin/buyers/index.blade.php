@@ -1,0 +1,9 @@
+<x-layouts.app title="Akun Pembeli">
+    <div><p class="text-sm font-extrabold uppercase tracking-widest text-primary">Pelanggan Koperasi</p><h1 class="mt-1 text-3xl font-black text-slate-900">Akun Pembeli</h1><p class="mt-1 text-slate-500">Semua akun pelanggan menggunakan satu role pembeli.</p></div>
+    <form method="GET" class="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-[1fr_auto]">
+        <input name="search" value="{{ request('search') }}" placeholder="Nama, email, atau nomor HP" class="rounded-xl border border-slate-300 px-4 py-3 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+        <button class="rounded-xl bg-primary px-5 py-3 font-bold text-white transition hover:bg-secondary">Filter</button>
+    </form>
+    <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-200 bg-white"><table class="min-w-full text-sm"><thead class="bg-blue-50/70 text-left text-xs uppercase tracking-wide text-slate-500"><tr><th class="p-4">Pembeli</th><th class="p-4">Kontak</th><th class="p-4 text-center">Pesanan</th><th class="p-4 text-right">Belanja Selesai</th></tr></thead><tbody class="divide-y divide-slate-100">@forelse($buyers as $buyer)<tr class="hover:bg-blue-50/40"><td class="p-4"><p class="font-bold text-slate-900">{{ $buyer->name }}</p><p class="text-xs text-slate-500">Terdaftar {{ $buyer->created_at->format('d/m/Y') }}</p></td><td class="p-4"><p>{{ $buyer->email }}</p><p class="text-xs text-slate-500">{{ $buyer->phone }}</p></td><td class="p-4 text-center font-bold">{{ $buyer->orders_count }}</td><td class="p-4 text-right font-black">Rp {{ number_format($buyer->completed_spend ?? 0, 0, ',', '.') }}</td></tr>@empty<tr><td colspan="4" class="p-8 text-center text-slate-500">Pembeli tidak ditemukan.</td></tr>@endforelse</tbody></table></div>
+    <div class="mt-6">{{ $buyers->links() }}</div>
+</x-layouts.app>

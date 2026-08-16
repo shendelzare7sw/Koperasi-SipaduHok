@@ -11,21 +11,56 @@ use App\Models\Courier;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
+use App\Services\OrderNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Throwable;
 
 class CheckoutController extends Controller
 {
+    public function buyNow(Request $request, Product $product): RedirectResponse
+    {
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        abort_unless($product->is_active, 404);
+
+        if ($validated['quantity'] > $product->stock) {
+            return back()->withErrors(['quantity' => 'Jumlah melebihi stok yang tersedia.']);
+        }
+
+        $cartItem = CartItem::query()->updateOrCreate(
+            ['user_id' => $request->user()->id, 'product_id' => $product->id],
+            ['quantity' => $validated['quantity']],
+        );
+
+        return redirect()->route('checkout.create', ['items' => [$cartItem->id]]);
+    }
+
     public function create(Request $request): View|RedirectResponse
     {
-        $items = $request->user()->cartItems()->with('product')->get();
+        $selectedIds = collect($request->input('items', []))
+            ->filter(fn ($id) => filter_var($id, FILTER_VALIDATE_INT) !== false)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $items = $request->user()->cartItems()
+            ->with('product')
+            ->when($selectedIds->isNotEmpty(), fn ($query) => $query->whereIn('id', $selectedIds))
+            ->get();
 
         if ($items->isEmpty()) {
-            return redirect()->route('cart.index')->withErrors(['cart' => 'Keranjang masih kosong.']);
+            return redirect()->route('cart.index')->withErrors([
+                'cart' => $selectedIds->isNotEmpty()
+                    ? 'Produk yang dipilih tidak ditemukan di keranjang.'
+                    : 'Keranjang masih kosong.',
+            ]);
         }
 
         return view('checkout.create', [
@@ -33,12 +68,17 @@ class CheckoutController extends Controller
             'subtotal' => $items->sum('subtotal'),
             'courier' => Courier::where('code', 'main')->where('is_active', true)->first(),
             'paymentMethods' => PaymentMethod::cases(),
+            'addresses' => $request->user()->addresses()->latest('is_primary')->latest()->get(),
         ]);
     }
 
-    public function store(Request $request, PaymentGateway $gateway): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        PaymentGateway $gateway,
+        OrderNotificationService $notifications,
+    ): RedirectResponse {
         $validated = $request->validate([
+            'address_id' => ['nullable', 'integer'],
             'buyer_name' => ['required', 'string', 'max:255'],
             'student_name' => ['required', 'string', 'max:255'],
             'class_name' => ['required', 'string', 'max:100'],
@@ -46,13 +86,32 @@ class CheckoutController extends Controller
             'delivery_address' => ['required', 'string', 'max:1000'],
             'payment_method' => ['required', new Enum(PaymentMethod::class)],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'cart_item_ids' => ['required', 'array', 'min:1'],
+            'cart_item_ids.*' => ['required', 'integer', 'distinct'],
         ]);
 
-        $order = DB::transaction(function () use ($request, $validated) {
-            $cartItems = CartItem::query()->where('user_id', $request->user()->id)->get();
+        if (! empty($validated['address_id'])) {
+            $address = $request->user()->addresses()->find($validated['address_id']);
 
-            if ($cartItems->isEmpty()) {
-                throw ValidationException::withMessages(['cart' => 'Keranjang masih kosong.']);
+            if (! $address) {
+                throw ValidationException::withMessages(['address_id' => 'Alamat tersimpan tidak valid.']);
+            }
+
+            $validated['buyer_name'] = $address->recipient_name;
+            $validated['phone'] = $address->phone;
+            $validated['delivery_address'] = $address->full_address;
+        }
+
+        $order = DB::transaction(function () use ($request, $validated) {
+            $selectedIds = collect($validated['cart_item_ids'])->map(fn ($id) => (int) $id)->unique()->values();
+            $cartItems = CartItem::query()
+                ->where('user_id', $request->user()->id)
+                ->whereIn('id', $selectedIds)
+                ->lockForUpdate()
+                ->get();
+
+            if ($cartItems->count() !== $selectedIds->count()) {
+                throw ValidationException::withMessages(['cart' => 'Ada produk pilihan yang tidak lagi tersedia di keranjang.']);
             }
 
             $products = Product::query()
@@ -76,15 +135,16 @@ class CheckoutController extends Controller
             }
 
             $shippingCost = $courier->fee;
+            $orderData = collect($validated)->except(['address_id', 'cart_item_ids'])->all();
             $order = Order::create([
-                ...$validated,
+                ...$orderData,
                 'user_id' => $request->user()->id,
                 'courier_id' => $courier->id,
                 'courier_name' => $courier->name,
                 'shipping_cost' => $shippingCost,
                 'status' => OrderStatus::PendingPayment,
                 'payment_status' => PaymentStatus::Unpaid,
-                'payment_gateway' => 'placeholder',
+                'payment_gateway' => config('services.payment_gateway', 'placeholder'),
                 'subtotal' => $subtotal,
                 'total' => $subtotal + $shippingCost,
             ]);
@@ -110,18 +170,32 @@ class CheckoutController extends Controller
                 'note' => 'Pesanan dibuat oleh pembeli.',
             ]);
 
-            CartItem::where('user_id', $request->user()->id)->delete();
+            CartItem::where('user_id', $request->user()->id)->whereIn('id', $selectedIds)->delete();
 
             return $order;
         });
 
-        $transaction = $gateway->createTransaction($order);
-        $order->update([
-            'payment_reference' => $transaction['reference'],
-            'payment_token' => $transaction['token'],
-            'payment_status' => PaymentStatus::from($transaction['status']),
-        ]);
+        $notifications->orderCreated($order);
 
-        return redirect()->route('orders.show', $order)->with('success', 'Pesanan dibuat. Payment gateway masih menggunakan mode placeholder.');
+        try {
+            $transaction = $gateway->createTransaction($order);
+            $order->update([
+                'payment_reference' => $transaction['reference'],
+                'payment_token' => $transaction['token'],
+                'payment_status' => PaymentStatus::from($transaction['status']),
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('orders.show', $order)->withErrors([
+                'payment' => 'Pesanan tersimpan, tetapi kanal pembayaran belum dapat dibuka. Silakan coba lagi dari detail pesanan.',
+            ]);
+        }
+
+        if ($order->payment_gateway === 'midtrans' && filled($order->payment_token)) {
+            return redirect()->route('orders.payment', $order)->with('success', 'Pesanan berhasil dibuat. Selesaikan pembayaran melalui Midtrans.');
+        }
+
+        return redirect()->route('orders.show', $order)->with('success', 'Pesanan dibuat. Pembayaran menggunakan mode konfirmasi internal.');
     }
 }

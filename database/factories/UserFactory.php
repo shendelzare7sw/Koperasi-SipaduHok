@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\BuyerType;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -31,7 +30,6 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->numerify('08##########'),
             'role' => UserRole::Buyer,
-            'buyer_type' => BuyerType::Student,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -42,7 +40,6 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => [
             'role' => UserRole::Admin,
-            'buyer_type' => null,
         ]);
     }
 

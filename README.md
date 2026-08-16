@@ -1,4 +1,4 @@
-# Koperasi Sipaduhok
+# Koperasi-SipaduHok
 
 Toko online koperasi sekolah untuk buku, alat tulis, dan atribut sekolah. Project ini berdiri sendiri dari aplikasi SPP Sipaduhok: repository, database, session, akun, order, dan kredensial payment gateway tidak dibagi dengan `app.sipaduhok.id`.
 
@@ -7,16 +7,15 @@ Target produksi: `https://koperasi.sipaduhok.id`.
 ## Stack
 
 - Laravel 13 / PHP 8.3
-- Blade + Tailwind CSS 4 + Vite
+- Blade + Tailwind CSS 4 + Alpine.js + Vite
 - MySQL untuk development dan produksi; SQLite in-memory hanya untuk test otomatis
-- Payment gateway masih `placeholder` dan sudah dipisahkan melalui kontrak `PaymentGateway`
+- Midtrans Snap tersedia melalui adapter `PaymentGateway`; mode `placeholder` tetap tersedia untuk development
 - Tidak memakai RajaOngkir, Komerce, ekspedisi, atau API pengiriman lain
 
-## Role dan tipe akun
+## Role akun
 
 - `admin`: seller/pengelola Koperasi Sipaduhok
-- `pembeli`: akses katalog, cart, checkout, riwayat, invoice, dan konfirmasi penerimaan
-- Pembeli memiliki tipe profil `siswa` atau `orang_tua`; tipe ini bukan role tambahan
+- `pembeli`: akses dashboard, katalog, wishlist, alamat tersimpan, cart, checkout, riwayat, invoice, ulasan, dan konfirmasi penerimaan
 
 Registrasi publik selalu membuat akun `pembeli`. Akun admin dibuat melalui seeder/environment.
 
@@ -36,6 +35,19 @@ menunggu pembayaran
 ```
 
 Semua perpindahan status dicatat dalam `order_status_histories`.
+
+## Pengalaman retail
+
+- Profil, pengaturan keamanan, reset kata sandi, dropdown akun, dan notifikasi database untuk kedua role
+- Galeri maksimal lima foto dengan preview sebelum upload dan lightbox pada detail produk/bukti tiba
+- Wishlist dan alamat tersimpan khusus pembeli
+- Ulasan hanya untuk pembelian yang selesai; admin dapat memberi balasan resmi
+- Filter katalog berdasarkan kategori, harga, rating, dan urutan
+- Label pengiriman cetak untuk Kurir Koperasi
+- Halaman tentang, bantuan, pembayaran, pengiriman, pengembalian, privasi, dan syarat ketentuan
+- Identitas/kontak publik koperasi dapat diatur melalui panel admin
+
+Hasil audit serta keputusan adaptasi fitur dari DigiRack dicatat di [`docs/digirack-feature-reconciliation.md`](docs/digirack-feature-reconciliation.md).
 
 ## Instalasi development (PowerShell)
 
@@ -66,9 +78,24 @@ Untuk produksi, isi `ADMIN_EMAIL` dan `ADMIN_PASSWORD` di `.env` sebelum menjala
 
 ## Payment gateway
 
-Checkout saat ini membuat referensi `DEMO-*`. Admin menekan **Konfirmasi Pembayaran** agar stok berkurang dan order masuk tahap diproses.
+Mode bawaan development adalah `placeholder`: checkout membuat referensi `DEMO-*`, lalu admin menekan **Konfirmasi Pembayaran Internal** agar stok berkurang dan order mulai diproses.
 
-Implementasi Midtrans/Tripay berikutnya cukup membuat adapter baru untuk `App\Contracts\PaymentGateway`, mengganti binding pada `AppServiceProvider`, dan menambahkan webhook bertanda tangan. Status pembayaran tidak boleh ditentukan dari redirect browser tanpa verifikasi server-to-server/webhook.
+Untuk mengaktifkan Midtrans Sandbox:
+
+```dotenv
+PAYMENT_GATEWAY=midtrans
+MIDTRANS_SERVER_KEY=SB-Mid-server-...
+MIDTRANS_CLIENT_KEY=SB-Mid-client-...
+MIDTRANS_IS_PRODUCTION=false
+```
+
+Atur Payment Notification URL di dashboard Midtrans ke:
+
+```text
+https://koperasi.sipaduhok.id/payments/midtrans/notification
+```
+
+Setiap order Koperasi menjadi satu transaksi Midtrans. Callback diverifikasi memakai signature SHA-512, nominal callback dicocokkan dengan total order, dan pengurangan stok bersifat idempoten sehingga callback berulang tidak mengurangi stok dua kali. Redirect browser hanya mengubah tampilan; status lunas tetap berasal dari callback server-to-server atau sinkronisasi status ke Midtrans.
 
 Website dan pengajuan merchant harus menampilkan identitas badan usaha/perorangan, hubungan kemitraan, katalog, harga, proses pemesanan, kebijakan, dan barang yang benar-benar dijalankan. Pemisahan aplikasi tidak boleh dipakai untuk menyamarkan entitas atau menghindari persyaratan onboarding payment gateway.
 
@@ -81,7 +108,7 @@ vendor\bin\pint --test
 npm run build
 ```
 
-Test mencakup registrasi dua tipe pembeli, pemisahan role, checkout satu kurir, snapshot ongkir, pengurangan stok saat pembayaran dikonfirmasi, workflow pengiriman, upload bukti oleh admin, konfirmasi pembeli, invoice, dan otorisasi invoice.
+Test mencakup registrasi, profil/keamanan, reset kata sandi, notifikasi, wishlist, alamat checkout, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas koperasi, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
 
 ## Struktur fitur utama
 

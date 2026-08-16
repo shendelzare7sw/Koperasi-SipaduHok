@@ -6,8 +6,29 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-primary: #165fac;
+    --color-primary-dark: #0e4b8a;
+    --color-secondary: #287f3b;
+    --color-secondary-dark: #1e5c2b;
+    --color-accent-yellow: #fac030;
+    --color-cream: #e8e7e2;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.sipaduhok-dialog {
+    border-radius: 1.5rem;
+    font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
+
+.sipaduhok-dialog-button {
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1.25rem !important;
+    font-weight: 700 !important;
 }
 
 @media print {

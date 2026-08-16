@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\BuyerType;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -34,12 +32,12 @@ class AuthController extends Controller
 
         return $request->user()->isAdmin()
             ? redirect()->intended(route('admin.dashboard'))
-            : redirect()->intended(route('catalog.index'));
+            : redirect()->intended(route('buyer.dashboard'));
     }
 
     public function registerForm(): View
     {
-        return view('auth.register', ['buyerTypes' => BuyerType::cases()]);
+        return view('auth.register');
     }
 
     public function register(Request $request): RedirectResponse
@@ -48,7 +46,6 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'max:20'],
-            'buyer_type' => ['required', new Enum(BuyerType::class)],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
@@ -56,7 +53,7 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('catalog.index')->with('success', 'Akun pembeli berhasil dibuat.');
+        return redirect()->route('buyer.dashboard')->with('success', 'Akun pembeli berhasil dibuat.');
     }
 
     public function logout(Request $request): RedirectResponse

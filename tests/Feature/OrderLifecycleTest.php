@@ -31,16 +31,17 @@ class OrderLifecycleTest extends TestCase
             'estimate' => '1 hari sekolah',
             'is_active' => true,
         ]);
-        CartItem::create(['user_id' => $buyer->id, 'product_id' => $product->id, 'quantity' => 2]);
+        $cartItem = CartItem::create(['user_id' => $buyer->id, 'product_id' => $product->id, 'quantity' => 2]);
 
         $checkout = $this->actingAs($buyer)->post(route('checkout.store'), [
-            'buyer_name' => 'Orang Tua Siswa',
+            'buyer_name' => 'Pembeli Koperasi',
             'student_name' => 'Siswa Contoh',
             'class_name' => 'VIII-A',
             'phone' => '081234567890',
             'delivery_address' => 'Jl. Sekolah No. 1, Jakarta',
             'payment_method' => 'qris',
             'notes' => 'Antar setelah jam sekolah.',
+            'cart_item_ids' => [$cartItem->id],
         ]);
 
         $order = Order::firstOrFail();
@@ -50,10 +51,13 @@ class OrderLifecycleTest extends TestCase
         $this->assertSame(OrderStatus::PendingPayment, $order->status);
         $this->assertSame(PaymentStatus::Pending, $order->payment_status);
         $this->assertSame(10, $product->fresh()->stock, 'Stok belum berkurang sebelum pembayaran terkonfirmasi.');
+        $this->assertSame(1, $admin->unreadNotifications()->count());
+        $this->assertSame(1, $buyer->unreadNotifications()->count());
 
         $this->actingAs($admin)->post(route('admin.orders.confirm-payment', $order))->assertRedirect();
         $this->assertSame(OrderStatus::Processing, $order->fresh()->status);
         $this->assertSame(8, $product->fresh()->stock);
+        $this->assertSame(2, $buyer->unreadNotifications()->count());
 
         $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), ['status' => 'ready'])->assertRedirect();
         $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), ['status' => 'out_for_delivery'])->assertRedirect();
@@ -66,17 +70,25 @@ class OrderLifecycleTest extends TestCase
         $order->refresh();
         $this->assertSame(OrderStatus::Delivered, $order->status);
         $this->assertNotNull($order->delivery_proof_path);
+        $this->assertSame(5, $buyer->unreadNotifications()->count());
         Storage::disk('public')->assertExists($order->delivery_proof_path);
 
         $this->actingAs($buyer)->post(route('orders.confirm-received', $order))->assertRedirect();
         $this->assertSame(OrderStatus::Completed, $order->fresh()->status);
         $this->assertNotNull($order->fresh()->received_confirmed_at);
+        $this->assertSame(2, $admin->unreadNotifications()->count());
 
         $this->actingAs($buyer)
             ->get(route('orders.invoice', $order))
             ->assertOk()
             ->assertSee($order->invoice_number)
             ->assertSee('Buku Matematika');
+
+        $this->actingAs($admin)
+            ->get(route('admin.orders.label', $order))
+            ->assertOk()
+            ->assertSee('Label Pengiriman')
+            ->assertSee($order->delivery_address);
     }
 
     public function test_buyer_cannot_open_another_buyers_invoice(): void

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\BuyerType;
 use App\Enums\UserRole;
 use App\Models\Courier;
 use App\Models\Product;
@@ -34,7 +33,6 @@ class DatabaseSeeder extends Seeder
                     'name' => 'Admin Koperasi',
                     'phone' => '080000000000',
                     'role' => UserRole::Admin,
-                    'buyer_type' => null,
                     'password' => $adminPassword,
                 ],
             );
@@ -47,7 +45,6 @@ class DatabaseSeeder extends Seeder
                     'name' => 'Pembeli Demo',
                     'phone' => '081234567890',
                     'role' => UserRole::Buyer,
-                    'buyer_type' => BuyerType::Parent,
                     'password' => 'password',
                 ],
             );

@@ -2,7 +2,10 @@
 
 namespace App\View\Components\Layouts;
 
+use App\Models\StoreSetting;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Component;
 
 class App extends Component
@@ -11,6 +14,21 @@ class App extends Component
 
     public function render(): View
     {
-        return view('layouts.app');
+        $user = auth()->user();
+
+        return view('layouts.app', [
+            'latestNotifications' => $user
+                ? $user->notifications()->latest()->limit(6)->get()
+                : new Collection,
+            'unreadNotificationCount' => $user
+                ? $user->unreadNotifications()->count()
+                : 0,
+            'wishlistCount' => $user && ! $user->isAdmin()
+                ? $user->wishlists()->count()
+                : 0,
+            'storeSettings' => Schema::hasTable('store_settings')
+                ? StoreSetting::values()
+                : StoreSetting::DEFAULTS,
+        ]);
     }
 }

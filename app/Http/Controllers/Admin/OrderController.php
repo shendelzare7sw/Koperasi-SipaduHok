@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\StoreSetting;
 use App\Services\OrderWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        return view('admin.orders.show', ['order' => $order->load(['items', 'buyer', 'histories.actor'])]);
+        return view('admin.orders.show', ['order' => $order->load(['items.review.buyer', 'buyer', 'histories.actor'])]);
     }
 
     public function invoice(Order $order): View
@@ -42,8 +43,18 @@ class OrderController extends Controller
         return view('orders.invoice', ['order' => $order->load(['items', 'buyer'])]);
     }
 
+    public function label(Order $order): View
+    {
+        return view('orders.label', [
+            'order' => $order->load(['items', 'buyer']),
+            'settings' => StoreSetting::values(),
+        ]);
+    }
+
     public function confirmPayment(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
     {
+        abort_unless($order->payment_gateway === 'placeholder', 422, 'Pembayaran Midtrans harus dikonfirmasi melalui callback gateway.');
+
         $workflow->confirmPayment($order, $request->user());
 
         return back()->with('success', 'Pembayaran dikonfirmasi; stok telah dikurangi dan pesanan mulai diproses.');

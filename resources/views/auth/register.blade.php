@@ -1,30 +1,31 @@
 <x-layouts.app title="Daftar Pembeli - Koperasi Sipaduhok">
     <div class="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 class="text-2xl font-black text-slate-900">Daftar Pembeli</h1>
-        <p class="mt-1 text-sm text-slate-500">Pilih apakah akun digunakan siswa atau orang tua/wali.</p>
-        <form method="POST" action="{{ route('register.store') }}" class="mt-6 grid gap-4 sm:grid-cols-2">
+        <p class="mt-1 text-sm text-slate-500">Buat satu akun pembeli untuk berbelanja di Koperasi Sipaduhok.</p>
+        <form method="POST" action="{{ route('register.store') }}" class="mt-6 grid gap-4 sm:grid-cols-2" data-confirm="Pastikan nama, nomor HP, dan email sudah benar." data-confirm-title="Buat akun pembeli?" data-confirm-button="Ya, buat akun">
             @csrf
             <label class="block text-sm font-semibold sm:col-span-2">Nama pemilik akun
                 <input name="name" value="{{ old('name') }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">
             </label>
-            <label class="block text-sm font-semibold">Tipe pembeli
-                <select name="buyer_type" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">
-                    @foreach($buyerTypes as $type)<option value="{{ $type->value }}" @selected(old('buyer_type') === $type->value)>{{ $type->label() }}</option>@endforeach
-                </select>
-            </label>
-            <label class="block text-sm font-semibold">Nomor HP
+            <label class="block text-sm font-semibold sm:col-span-2">Nomor HP
                 <input name="phone" value="{{ old('phone') }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">
             </label>
             <label class="block text-sm font-semibold sm:col-span-2">Email
                 <input name="email" type="email" value="{{ old('email') }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">
             </label>
-            <label class="block text-sm font-semibold">Kata sandi
-                <input name="password" type="password" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">
+            <label x-data="{ show: false }" class="block text-sm font-semibold">Kata sandi
+                <span class="relative mt-1 block">
+                    <input name="password" :type="show ? 'text' : 'password'" required class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-20">
+                    <button type="button" @click="show = ! show" class="absolute inset-y-0 right-0 grid w-12 place-items-center text-primary transition hover:text-secondary" :aria-label="show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"><i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i></button>
+                </span>
             </label>
-            <label class="block text-sm font-semibold">Konfirmasi kata sandi
-                <input name="password_confirmation" type="password" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">
+            <label x-data="{ show: false }" class="block text-sm font-semibold">Konfirmasi kata sandi
+                <span class="relative mt-1 block">
+                    <input name="password_confirmation" :type="show ? 'text' : 'password'" required class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-20">
+                    <button type="button" @click="show = ! show" class="absolute inset-y-0 right-0 grid w-12 place-items-center text-primary transition hover:text-secondary" :aria-label="show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"><i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i></button>
+                </span>
             </label>
-            <button class="rounded-xl bg-orange-500 px-4 py-3 font-bold text-slate-950 sm:col-span-2">Buat Akun Pembeli</button>
+            <button class="rounded-xl bg-primary px-4 py-3 font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary sm:col-span-2">Buat Akun Pembeli</button>
         </form>
     </div>
 </x-layouts.app>

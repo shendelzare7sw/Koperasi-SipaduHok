@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\AccountRecoveryOtpNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -12,13 +14,57 @@ class PasswordAndPublicInformationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_buyer_can_request_password_reset_link(): void
+    public function test_buyer_can_recover_account_by_phone_and_reset_password_after_otp(): void
     {
         Notification::fake();
-        $buyer = User::factory()->create();
+        $otp = null;
+        $buyer = User::factory()->create([
+            'email' => 'pembeli@example.test',
+            'phone' => '081234567899',
+            'password' => 'password123',
+        ]);
 
-        $this->post(route('password.email'), ['email' => $buyer->email])->assertRedirect();
-        Notification::assertSentTo($buyer, ResetPassword::class);
+        $this->post(route('password.email'), ['identifier' => $buyer->phone])
+            ->assertRedirect(route('recovery.otp.notice'));
+
+        Notification::assertSentOnDemand(
+            AccountRecoveryOtpNotification::class,
+            function (AccountRecoveryOtpNotification $notification, array $channels, AnonymousNotifiable $notifiable) use (&$otp, $buyer): bool {
+                $otp = $notification->code;
+
+                return $channels === ['mail']
+                    && array_key_exists($buyer->email, $notifiable->routes['mail']);
+            }
+        );
+
+        $this->post(route('recovery.otp.verify'), ['code' => $otp])
+            ->assertRedirect(route('recovery.password.edit'));
+
+        $this->get(route('recovery.password.edit'))
+            ->assertOk()
+            ->assertSee($buyer->email);
+
+        $this->post(route('password.update'), [
+            'password' => 'kataSandi456',
+            'password_confirmation' => 'kataSandi456',
+        ])->assertRedirect(route('login'));
+
+        $this->assertTrue(Hash::check('kataSandi456', $buyer->fresh()->password));
+    }
+
+    public function test_unknown_account_uses_the_same_recovery_response_without_sending_email(): void
+    {
+        Notification::fake();
+
+        $this->post(route('password.email'), ['identifier' => 'tidak-ada@example.test'])
+            ->assertRedirect(route('recovery.otp.notice'))
+            ->assertSessionHas('success', 'Jika data cocok, kode OTP pemulihan telah dikirim ke email akun terdaftar.');
+
+        $this->get(route('recovery.otp.notice'))
+            ->assertOk()
+            ->assertSee('email akun terdaftar');
+
+        Notification::assertNothingSent();
     }
 
     public function test_public_information_and_legal_pages_are_available(): void

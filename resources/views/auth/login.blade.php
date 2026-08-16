@@ -16,7 +16,8 @@
                 </span>
             </label>
             <label class="flex items-center gap-2 text-sm text-slate-600"><input type="checkbox" name="remember" value="1" class="rounded border-slate-300"> Ingat saya</label>
-            <div class="text-right"><a href="{{ route('password.request') }}" class="text-sm font-bold text-primary hover:text-secondary">Lupa kata sandi?</a></div>
+            <div class="text-right"><a href="{{ route('password.request') }}" class="text-sm font-bold text-primary hover:text-secondary">Lupa akun atau kata sandi?</a></div>
+            <x-turnstile action="login" />
             <button class="w-full rounded-xl bg-primary px-4 py-3 font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary">Masuk</button>
         </form>
         <p class="mt-5 text-center text-sm text-slate-500">Belum punya akun? <a href="{{ route('register') }}" class="font-bold text-primary hover:text-secondary">Daftar pembeli</a></p>

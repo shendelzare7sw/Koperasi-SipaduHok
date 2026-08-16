@@ -17,7 +17,30 @@ Target produksi: `https://koperasi.sipaduhok.id`.
 - `admin`: seller/pengelola Koperasi Sipaduhok
 - `pembeli`: akses dashboard, katalog, wishlist, alamat tersimpan, cart, checkout, riwayat, invoice, ulasan, dan konfirmasi penerimaan
 
-Registrasi publik selalu membuat akun `pembeli`. Akun admin dibuat melalui seeder/environment.
+Registrasi publik selalu membuat akun `pembeli`, tetapi data user baru disimpan setelah kode OTP email berhasil diverifikasi. Akun admin dibuat melalui seeder/environment.
+
+## Keamanan akun
+
+- Login, registrasi, dan formulir pemulihan akun dilindungi Cloudflare Turnstile dengan validasi wajib di server.
+- Hasil Turnstile juga diperiksa terhadap `action` formulir dan hostname production untuk mencegah token dari halaman/domain lain digunakan kembali.
+- Login dibatasi per kombinasi email dan alamat IP; endpoint OTP juga memiliki route rate limit.
+- OTP berisi enam digit, berlaku 10 menit, maksimal lima percobaan, maksimal tiga kali kirim ulang, dan memiliki jeda kirim ulang 60 detik.
+- Registrasi tidak membuat user sebelum OTP benar. Pemulihan akun menerima email atau nomor HP, mengirim OTP ke email terdaftar, lalu memberi sesi singkat untuk mengganti kata sandi.
+- Respons awal pemulihan dibuat generik agar tidak membocorkan apakah email atau nomor HP terdaftar.
+- Session database dienkripsi pada konfigurasi contoh dan seluruh session login lama dicabut setelah kata sandi dipulihkan.
+
+Untuk production, buat widget Turnstile di Cloudflare dengan hostname `koperasi.sipaduhok.id`, kemudian isi tanpa tanda kutip tambahan:
+
+```dotenv
+TURNSTILE_SITE_KEY=site-key-dari-cloudflare
+TURNSTILE_SECRET_KEY=secret-key-dari-cloudflare
+TURNSTILE_HOSTNAME=koperasi.sipaduhok.id
+SESSION_ENCRYPT=true
+```
+
+Jika kedua key Turnstile kosong, pemeriksaan dilewati agar development lokal tetap dapat dijalankan. Jika hanya salah satu key terisi, autentikasi akan gagal tertutup sampai konfigurasi diperbaiki. Setelah mengubah `.env` di server, jalankan `php artisan optimize:clear` lalu `php artisan config:cache`.
+
+OTP memerlukan email sungguhan di production. Ubah `MAIL_MAILER=log` ke SMTP/provider transaksi yang digunakan dan isi `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, serta `MAIL_FROM_ADDRESS`. Jangan commit secret Turnstile, SMTP, atau Midtrans.
 
 ## Pengiriman
 
@@ -38,7 +61,7 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 
 ## Pengalaman retail
 
-- Profil, pengaturan keamanan, reset kata sandi, dropdown akun, dan notifikasi database untuk kedua role
+- Profil, pengaturan keamanan, pemulihan akun berbasis OTP, dropdown akun, dan notifikasi database untuk kedua role
 - Galeri maksimal lima foto dengan preview sebelum upload dan lightbox pada detail produk/bukti tiba
 - Wishlist dan alamat tersimpan khusus pembeli
 - Ulasan hanya untuk pembelian yang selesai; admin dapat memberi balasan resmi
@@ -109,7 +132,7 @@ vendor\bin\pint --test
 npm run build
 ```
 
-Test mencakup registrasi, profil/keamanan, reset kata sandi, notifikasi, wishlist, alamat checkout, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas koperasi, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
+Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas koperasi, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
 
 ## Struktur fitur utama
 

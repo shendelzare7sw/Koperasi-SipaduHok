@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountRecoveryController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\Admin\BuyerController as AdminBuyerController;
 use App\Http\Controllers\Admin\CourierController as AdminCourierController;
@@ -17,11 +18,9 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\MidtransNotificationController;
-use App\Http\Controllers\NewPasswordController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
-use App\Http\Controllers\PasswordResetLinkController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
@@ -39,13 +38,20 @@ Route::post('/payments/midtrans/notification', MidtransNotificationController::c
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.store');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20,1')->name('login.store');
     Route::get('/daftar', [AuthController::class, 'registerForm'])->name('register');
-    Route::post('/daftar', [AuthController::class, 'register'])->name('register.store');
-    Route::get('/lupa-kata-sandi', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('/lupa-kata-sandi', [PasswordResetLinkController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
-    Route::get('/atur-ulang-kata-sandi/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/atur-ulang-kata-sandi', [NewPasswordController::class, 'store'])->name('password.update');
+    Route::post('/daftar', [AuthController::class, 'register'])->middleware('throttle:3,1')->name('register.store');
+    Route::get('/daftar/verifikasi-otp', [AuthController::class, 'showRegistrationOtp'])->name('register.otp.notice');
+    Route::post('/daftar/verifikasi-otp', [AuthController::class, 'verifyRegistrationOtp'])->middleware('throttle:10,1')->name('register.otp.verify');
+    Route::post('/daftar/kirim-ulang-otp', [AuthController::class, 'resendRegistrationOtp'])->middleware('throttle:5,1')->name('register.otp.resend');
+
+    Route::get('/lupa-akun', [AccountRecoveryController::class, 'create'])->name('password.request');
+    Route::post('/lupa-akun', [AccountRecoveryController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/lupa-akun/verifikasi-otp', [AccountRecoveryController::class, 'showOtp'])->name('recovery.otp.notice');
+    Route::post('/lupa-akun/verifikasi-otp', [AccountRecoveryController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('recovery.otp.verify');
+    Route::post('/lupa-akun/kirim-ulang-otp', [AccountRecoveryController::class, 'resendOtp'])->middleware('throttle:5,1')->name('recovery.otp.resend');
+    Route::get('/lupa-akun/atur-ulang-kata-sandi', [AccountRecoveryController::class, 'editPassword'])->name('recovery.password.edit');
+    Route::post('/lupa-akun/atur-ulang-kata-sandi', [AccountRecoveryController::class, 'updatePassword'])->middleware('throttle:5,1')->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {

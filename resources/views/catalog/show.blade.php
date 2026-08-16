@@ -28,7 +28,7 @@
         </div>
         <div class="lg:py-8">
             <div class="flex items-center justify-between gap-4">
-                <p class="font-bold uppercase tracking-wide text-primary">{{ App\Models\Product::CATEGORIES[$product->category] ?? $product->category }}</p>
+                <p class="font-bold uppercase tracking-wide text-primary">{{ $product->categoryLabel() }}</p>
                 @auth
                     @unless(auth()->user()->isAdmin())
                         <form method="POST" action="{{ $isWishlisted ? route('wishlist.destroy', $product) : route('wishlist.store', $product) }}" data-confirm="{{ $isWishlisted ? 'Produk akan dihapus dari wishlist.' : 'Produk akan disimpan ke wishlist.' }}" data-confirm-title="{{ $isWishlisted ? 'Hapus dari wishlist?' : 'Simpan ke wishlist?' }}" data-confirm-button="Ya, lanjutkan">

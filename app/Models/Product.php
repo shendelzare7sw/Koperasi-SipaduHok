@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -16,10 +17,11 @@ class Product extends Model
         'buku' => 'Buku',
         'alat_tulis' => 'Alat Tulis',
         'atribut_sekolah' => 'Atribut Sekolah',
+        'lainnya' => 'Lainnya',
     ];
 
     protected $fillable = [
-        'name', 'slug', 'description', 'price', 'stock', 'image_path', 'category', 'is_active',
+        'name', 'slug', 'description', 'price', 'stock', 'image_path', 'category', 'custom_category', 'is_active',
     ];
 
     protected function casts(): array
@@ -67,5 +69,14 @@ class Product extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function categoryLabel(): string
+    {
+        if ($this->category === 'lainnya' && filled($this->custom_category)) {
+            return $this->custom_category;
+        }
+
+        return self::CATEGORIES[$this->category] ?? Str::headline($this->category);
     }
 }

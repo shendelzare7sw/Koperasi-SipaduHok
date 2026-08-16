@@ -74,6 +74,7 @@ class CatalogController extends Controller
             ->withAvg('reviews', 'rating')
             ->where('is_active', true)
             ->where('category', $product->category)
+            ->when($product->category === 'lainnya', fn ($query) => $query->where('custom_category', $product->custom_category))
             ->whereKeyNot($product->id)
             ->where('stock', '>', 0)
             ->latest()

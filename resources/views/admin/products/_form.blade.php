@@ -1,9 +1,10 @@
 @csrf
 @if(isset($product)) @method('PUT') @endif
 @php($remainingImageSlots = isset($product) ? max(0, 5 - $product->images->count()) : 5)
-<div class="grid gap-4 sm:grid-cols-2">
+<div class="grid gap-4 sm:grid-cols-2" x-data="{ selectedCategory: @js(old('category', $product->category ?? 'buku')) }">
     <label class="text-sm font-semibold sm:col-span-2">Nama produk<input name="name" value="{{ old('name', $product->name ?? '') }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3"></label>
-    <label class="text-sm font-semibold">Kategori<select name="category" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">@foreach($categories as $value => $label)<option value="{{ $value }}" @selected(old('category', $product->category ?? '') === $value)>{{ $label }}</option>@endforeach</select></label>
+    <label class="text-sm font-semibold">Kategori<select name="category" x-model="selectedCategory" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">@foreach($categories as $value => $label)<option value="{{ $value }}" @selected(old('category', $product->category ?? 'buku') === $value)>{{ $label }}</option>@endforeach</select></label>
+    <label x-cloak x-show="selectedCategory === 'lainnya'" class="text-sm font-semibold">Nama kategori tambahan<input name="custom_category" value="{{ old('custom_category', $product->custom_category ?? '') }}" x-bind:required="selectedCategory === 'lainnya'" maxlength="100" placeholder="Contoh: Perlengkapan Harian" class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3"><span class="mt-1 block text-xs font-normal text-slate-500">Nama ini akan tampil sebagai kategori produk.</span></label>
     <label class="text-sm font-semibold">Harga (Rp)<input name="price" type="text" inputmode="numeric" pattern="[0-9.]*" value="{{ old('price', $product->price ?? '') }}" placeholder="0" data-rupiah-input required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3"></label>
     <label class="text-sm font-semibold">Stok<input name="stock" type="number" min="0" value="{{ old('stock', $product->stock ?? 0) }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3"></label>
     <div x-data="{ previews: [], previewOpen: false, activePreview: null }" class="sm:col-span-2">

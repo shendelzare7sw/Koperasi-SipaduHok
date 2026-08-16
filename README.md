@@ -43,6 +43,7 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 - Wishlist dan alamat tersimpan khusus pembeli
 - Ulasan hanya untuk pembelian yang selesai; admin dapat memberi balasan resmi
 - Filter katalog berdasarkan kategori, harga, rating, dan urutan
+- Import produk massal melalui template Excel dengan contoh, validasi per baris, dan dukungan kategori tambahan `Lainnya`
 - Label pengiriman cetak untuk Kurir Koperasi
 - Halaman tentang, bantuan, pembayaran, pengiriman, pengembalian, privasi, dan syarat ketentuan
 - Identitas/kontak publik koperasi dapat diatur melalui panel admin

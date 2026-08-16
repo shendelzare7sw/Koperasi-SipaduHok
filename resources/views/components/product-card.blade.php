@@ -20,7 +20,7 @@
             <div class="grid aspect-square w-full place-items-center px-4 text-center text-xs font-extrabold uppercase tracking-wide text-slate-400">Foto produk belum tersedia</div>
         @endif
         <span class="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-extrabold text-primary shadow-sm">
-            {{ $categories[$product->category] ?? $product->category }}
+            {{ $product->categoryLabel() }}
         </span>
     </a>
 

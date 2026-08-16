@@ -101,15 +101,25 @@ class ProductController extends Controller
             'price' => $this->normaliseCurrency($request->input('price')),
         ]);
 
-        return $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'integer', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'category' => ['required', Rule::in(array_keys(Product::CATEGORIES))],
+            'custom_category' => ['nullable', 'required_if:category,lainnya', 'string', 'max:100'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['required', 'image', 'max:3072'],
+        ], [
+            'custom_category.required_if' => 'Tuliskan nama kategori tambahan untuk pilihan Lainnya.',
+            'custom_category.max' => 'Nama kategori tambahan maksimal 100 karakter.',
         ]);
+
+        $validated['custom_category'] = $validated['category'] === 'lainnya'
+            ? trim($validated['custom_category'])
+            : null;
+
+        return $validated;
     }
 
     private function normaliseCurrency(mixed $value): mixed

@@ -30,6 +30,7 @@ class ProductImportController extends Controller
         'harga',
         'stok',
         'kategori',
+        'kategori_lainnya',
         'status_aktif',
     ];
 
@@ -99,7 +100,7 @@ class ProductImportController extends Controller
             }
 
             $headers = [];
-            foreach (range('A', 'F') as $column) {
+            foreach (range('A', 'G') as $column) {
                 $headers[] = $this->normaliseHeader($sheet->getCell($column.'1')->getValue());
             }
 
@@ -130,6 +131,7 @@ class ProductImportController extends Controller
                         'price' => $row['price'],
                         'stock' => $row['stock'],
                         'category' => $row['category'],
+                        'custom_category' => $row['custom_category'],
                         'is_active' => $row['is_active'],
                     ]);
                 }
@@ -165,7 +167,7 @@ class ProductImportController extends Controller
 
         for ($rowNumber = 2; $rowNumber <= $highestRow; $rowNumber++) {
             $values = [];
-            foreach (range('A', 'F') as $column) {
+            foreach (range('A', 'G') as $column) {
                 $values[] = $sheet->getCell($column.$rowNumber)->getValue();
             }
 
@@ -174,7 +176,7 @@ class ProductImportController extends Controller
             }
 
             $name = trim((string) $values[0]);
-            $status = Str::lower(trim((string) $values[5]));
+            $status = Str::lower(trim((string) $values[6]));
             $category = Str::of((string) $values[4])->trim()->lower()->replace([' ', '-'], '_')->value();
             $row = [
                 'name' => $name,
@@ -182,6 +184,7 @@ class ProductImportController extends Controller
                 'price' => $values[2],
                 'stock' => $values[3],
                 'category' => $category,
+                'custom_category' => trim((string) $values[5]) ?: null,
                 'is_active' => match ($status) {
                     'ya', '1', 'aktif', 'true' => true,
                     'tidak', '0', 'nonaktif', 'false' => false,
@@ -195,6 +198,7 @@ class ProductImportController extends Controller
                 'price' => ['required', 'integer', 'min:0', 'max:999999999999'],
                 'stock' => ['required', 'integer', 'min:0', 'max:1000000000'],
                 'category' => ['required', Rule::in(array_keys(Product::CATEGORIES))],
+                'custom_category' => ['nullable', 'required_if:category,lainnya', 'prohibited_unless:category,lainnya', 'string', 'max:100'],
                 'is_active' => ['required', 'boolean'],
             ], [
                 'name.required' => 'Nama produk wajib diisi.',
@@ -209,7 +213,10 @@ class ProductImportController extends Controller
                 'stock.integer' => 'Stok harus berupa bilangan bulat.',
                 'stock.min' => 'Stok tidak boleh negatif.',
                 'stock.max' => 'Stok terlalu besar.',
-                'category.in' => 'Kategori harus buku, alat_tulis, atau atribut_sekolah.',
+                'category.in' => 'Kategori harus buku, alat_tulis, atribut_sekolah, atau lainnya.',
+                'custom_category.required_if' => 'Kolom kategori_lainnya wajib diisi ketika kategori bernilai lainnya.',
+                'custom_category.prohibited_unless' => 'Kosongkan kategori_lainnya jika kategori bukan lainnya.',
+                'custom_category.max' => 'Kategori tambahan maksimal 100 karakter.',
                 'is_active.required' => 'Status aktif harus diisi dengan ya atau tidak.',
                 'is_active.boolean' => 'Status aktif harus diisi dengan ya atau tidak.',
             ]);
@@ -267,15 +274,16 @@ class ProductImportController extends Controller
         $dataSheet = $spreadsheet->getActiveSheet();
         $dataSheet->setTitle('Data Produk');
         $dataSheet->fromArray(self::HEADERS, null, 'A1');
-        $this->styleTableHeader($dataSheet, 'A1:F1');
+        $this->styleTableHeader($dataSheet, 'A1:G1');
         $dataSheet->freezePane('A2');
-        $dataSheet->setAutoFilter('A1:F1');
+        $dataSheet->setAutoFilter('A1:G1');
         $dataSheet->getColumnDimension('A')->setWidth(34);
         $dataSheet->getColumnDimension('B')->setWidth(54);
         $dataSheet->getColumnDimension('C')->setWidth(18);
         $dataSheet->getColumnDimension('D')->setWidth(12);
         $dataSheet->getColumnDimension('E')->setWidth(24);
-        $dataSheet->getColumnDimension('F')->setWidth(18);
+        $dataSheet->getColumnDimension('F')->setWidth(28);
+        $dataSheet->getColumnDimension('G')->setWidth(18);
         $dataSheet->getStyle('C2:C'.(self::MAX_ROWS + 1))->getNumberFormat()->setFormatCode('#,##0');
 
         $categoryValidation = new DataValidation;
@@ -286,7 +294,7 @@ class ProductImportController extends Controller
         $categoryValidation->setErrorTitle('Kategori tidak valid');
         $categoryValidation->setError('Pilih kategori dari daftar yang tersedia.');
         $categoryValidation->setShowDropDown(true);
-        $categoryValidation->setFormula1('"buku,alat_tulis,atribut_sekolah"');
+        $categoryValidation->setFormula1('"buku,alat_tulis,atribut_sekolah,lainnya"');
 
         $statusValidation = new DataValidation;
         $statusValidation->setType(DataValidation::TYPE_LIST);
@@ -300,24 +308,25 @@ class ProductImportController extends Controller
 
         for ($row = 2; $row <= self::MAX_ROWS + 1; $row++) {
             $dataSheet->getCell('E'.$row)->setDataValidation(clone $categoryValidation);
-            $dataSheet->getCell('F'.$row)->setDataValidation(clone $statusValidation);
+            $dataSheet->getCell('G'.$row)->setDataValidation(clone $statusValidation);
         }
 
         $exampleSheet = $spreadsheet->createSheet();
         $exampleSheet->setTitle('Contoh Pengisian');
         $exampleSheet->fromArray(self::HEADERS, null, 'A1');
         $exampleSheet->fromArray([
-            ['Buku Matematika Kelas X', 'Buku pelajaran matematika untuk siswa kelas X.', 65000, 30, 'buku', 'ya'],
-            ['Pensil 2B', 'Pensil 2B untuk menulis dan ujian sekolah.', 3500, 120, 'alat_tulis', 'ya'],
-            ['Dasi Sekolah', 'Dasi seragam resmi sekolah.', 15000, 50, 'atribut_sekolah', 'ya'],
+            ['Buku Matematika Kelas X', 'Buku pelajaran matematika untuk siswa kelas X.', 65000, 30, 'buku', null, 'ya'],
+            ['Pensil 2B', 'Pensil 2B untuk menulis dan ujian sekolah.', 3500, 120, 'alat_tulis', null, 'ya'],
+            ['Dasi Sekolah', 'Dasi seragam resmi sekolah.', 15000, 50, 'atribut_sekolah', null, 'ya'],
+            ['Botol Minum Sekolah', 'Botol minum untuk kegiatan harian siswa.', 28000, 40, 'lainnya', 'Perlengkapan Harian', 'ya'],
         ], null, 'A2');
-        $this->styleTableHeader($exampleSheet, 'A1:F1');
-        $exampleSheet->getStyle('A2:F4')->getFill()
+        $this->styleTableHeader($exampleSheet, 'A1:G1');
+        $exampleSheet->getStyle('A2:G5')->getFill()
             ->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FFFFF7D6');
-        $exampleSheet->getStyle('C2:C4')->getNumberFormat()->setFormatCode('#,##0');
+        $exampleSheet->getStyle('C2:C5')->getNumberFormat()->setFormatCode('#,##0');
         $exampleSheet->freezePane('A2');
-        foreach (range('A', 'F') as $column) {
+        foreach (range('A', 'G') as $column) {
             $exampleSheet->getColumnDimension($column)->setAutoSize(true);
         }
 
@@ -330,20 +339,21 @@ class ProductImportController extends Controller
             ['3. Jangan mengubah nama, urutan kolom, atau nama sheet "Data Produk".'],
             ['4. Harga ditulis sebagai angka bulat tanpa Rp, titik, atau koma. Contoh: 25000.'],
             ['5. Stok ditulis sebagai angka bulat nol atau lebih.'],
-            ['6. Kategori yang valid: buku, alat_tulis, atribut_sekolah.'],
-            ['7. Status aktif diisi ya atau tidak.'],
-            ['8. Nama produk tidak boleh sama dengan produk yang sudah ada atau baris lain.'],
-            ['9. Maksimal 1.000 produk dan ukuran file maksimal 5 MB.'],
-            ['10. Foto produk ditambahkan setelah import melalui menu Edit Produk.'],
+            ['6. Kategori yang valid: buku, alat_tulis, atribut_sekolah, atau lainnya.'],
+            ['7. Jika kategori diisi lainnya, kategori_lainnya wajib diisi. Untuk kategori biasa, kosongkan kolom tersebut.'],
+            ['8. Status aktif diisi ya atau tidak.'],
+            ['9. Nama produk tidak boleh sama dengan produk yang sudah ada atau baris lain.'],
+            ['10. Maksimal 1.000 produk dan ukuran file maksimal 5 MB.'],
+            ['11. Foto produk ditambahkan setelah import melalui menu Edit Produk.'],
         ], null, 'A1');
-        $guideSheet->mergeCells('A1:F1');
-        $guideSheet->getStyle('A1:F1')->applyFromArray([
+        $guideSheet->mergeCells('A1:G1');
+        $guideSheet->getStyle('A1:G1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 14],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF143C7D']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
         ]);
         $guideSheet->getColumnDimension('A')->setWidth(100);
-        $guideSheet->getStyle('A2:A11')->getAlignment()->setWrapText(true);
+        $guideSheet->getStyle('A2:A12')->getAlignment()->setWrapText(true);
 
         $spreadsheet->setActiveSheetIndex(0);
 

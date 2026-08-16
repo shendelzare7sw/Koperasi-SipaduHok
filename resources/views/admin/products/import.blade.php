@@ -53,7 +53,7 @@
 
             <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 class="text-xl font-black">2. Isi lalu unggah file</h2>
-                <p class="mt-2 text-sm leading-6 text-slate-500">Isi produk pada sheet <strong>Data Produk</strong>. Sheet <strong>Contoh Pengisian</strong> hanya referensi dan tidak akan ikut diimpor.</p>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Isi produk pada sheet <strong>Data Produk</strong>. Sheet <strong>Contoh Pengisian</strong> hanya referensi dan tidak akan ikut diimpor. Jika memilih kategori <strong>lainnya</strong>, isi juga kolom <strong>kategori_lainnya</strong>.</p>
 
                 <form
                     method="POST"

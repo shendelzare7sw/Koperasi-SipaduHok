@@ -39,7 +39,7 @@
                             <p class="font-bold">{{ $product->name }}</p>
                             <p class="text-xs text-slate-500">{{ $product->is_active ? 'Aktif' : 'Nonaktif' }}</p>
                         </td>
-                        <td class="p-4">{{ App\Models\Product::CATEGORIES[$product->category] ?? $product->category }}</td>
+                        <td class="p-4">{{ $product->categoryLabel() }}</td>
                         <td class="p-4 text-right">Rp {{ number_format($product->price, 0, ',', '.') }}</td>
                         <td class="p-4 text-center">{{ $product->stock }}</td>
                         <td class="p-4">

@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Product extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    public const CATEGORIES = [
+        'buku' => 'Buku',
+        'alat_tulis' => 'Alat Tulis',
+        'atribut_sekolah' => 'Atribut Sekolah',
+    ];
+
+    protected $fillable = [
+        'name', 'slug', 'description', 'price', 'stock', 'image_path', 'category', 'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'integer',
+            'stock' => 'integer',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
+}

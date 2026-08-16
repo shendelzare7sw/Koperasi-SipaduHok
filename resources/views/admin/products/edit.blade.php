@@ -1,0 +1,1 @@
+<x-layouts.app title="Edit Produk"><div class="mx-auto max-w-3xl"><h1 class="text-3xl font-black">Edit Produk</h1><form method="POST" action="{{ route('admin.products.update', $product) }}" enctype="multipart/form-data" class="mt-6 rounded-2xl border border-slate-200 bg-white p-6">@include('admin.products._form')</form></div></x-layouts.app>

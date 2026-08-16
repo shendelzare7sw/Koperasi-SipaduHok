@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Enums\OrderStatus;
+use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Services\OrderWorkflowService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
+use Throwable;
+
+class OrderController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $orders = Order::with('buyer')
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search');
+                $query->where(fn ($nested) => $nested
+                    ->where('invoice_number', 'like', "%{$search}%")
+                    ->orWhere('student_name', 'like', "%{$search}%"));
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.orders.index', ['orders' => $orders, 'statuses' => OrderStatus::cases()]);
+    }
+
+    public function show(Order $order): View
+    {
+        return view('admin.orders.show', ['order' => $order->load(['items', 'buyer', 'histories.actor'])]);
+    }
+
+    public function invoice(Order $order): View
+    {
+        return view('orders.invoice', ['order' => $order->load(['items', 'buyer'])]);
+    }
+
+    public function confirmPayment(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
+    {
+        $workflow->confirmPayment($order, $request->user());
+
+        return back()->with('success', 'Pembayaran dikonfirmasi; stok telah dikurangi dan pesanan mulai diproses.');
+    }
+
+    public function updateStatus(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in([OrderStatus::Ready->value, OrderStatus::OutForDelivery->value])],
+            'note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $workflow->transition($order, OrderStatus::from($validated['status']), $request->user(), $validated['note'] ?? null);
+
+        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+    }
+
+    public function markDelivered(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
+    {
+        $validated = $request->validate([
+            'delivery_proof' => ['required', 'image', 'max:5120'],
+            'delivery_note' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $proofPath = $request->file('delivery_proof')->store('delivery-proofs', 'public');
+
+        try {
+            $workflow->markDelivered($order, $request->user(), $proofPath, $validated['delivery_note'] ?? null);
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($proofPath);
+            throw $exception;
+        }
+
+        return back()->with('success', 'Bukti paket tiba berhasil diunggah. Menunggu konfirmasi pembeli.');
+    }
+}

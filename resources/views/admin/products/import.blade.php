@@ -142,7 +142,7 @@
                         <p class="mt-1 leading-6">Jika satu baris salah, semua data dibatalkan dan nomor baris yang perlu diperbaiki akan ditampilkan.</p>
                     </div>
 
-                    <button type="submit" :disabled="! fileName || fileError" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 font-black text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:bg-slate-300">
+                    <button type="submit" :disabled="fileName === '' || fileError !== ''" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 font-black text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:bg-slate-300">
                         <i class="fas fa-file-import" aria-hidden="true"></i>
                         Validasi & Import Produk
                     </button>

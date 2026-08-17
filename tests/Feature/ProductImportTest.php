@@ -25,6 +25,7 @@ class ProductImportTest extends TestCase
             ->assertSee('@drop.prevent', false)
             ->assertSee('new DataTransfer()', false)
             ->assertSee('x-ref="input"', false)
+            ->assertSee(':disabled="fileName === \'\' || fileError !== \'\'"', false)
             ->assertSee('Ukuran file melebihi batas 5 MB.');
     }
 

@@ -60,7 +60,7 @@ class CatalogFilterExperienceTest extends TestCase
 
     public function test_landing_uses_show_more_but_search_results_use_styled_pagination(): void
     {
-        Product::factory()->count(13)->sequence(
+        Product::factory()->count(37)->sequence(
             fn ($sequence) => [
                 'name' => 'Buku Pagination '.$sequence->index,
                 'description' => 'Produk untuk pemeriksaan pagination.',
@@ -78,9 +78,19 @@ class CatalogFilterExperienceTest extends TestCase
         $this->get(route('catalog.index', ['search' => 'Pagination']))
             ->assertOk()
             ->assertSee('data-pagination', false)
+            ->assertSee('data-mobile-current-page="1"', false)
+            ->assertSee('data-mobile-page-link="2"', false)
+            ->assertSee('data-mobile-page-link="3"', false)
+            ->assertSee('data-mobile-page-link="4"', false)
             ->assertSee('Halaman')
             ->assertSee('dari')
             ->assertDontSee('pagination.previous')
             ->assertDontSee('pagination.next');
+
+        $this->get(route('catalog.index', ['search' => 'Pagination', 'page' => 3]))
+            ->assertOk()
+            ->assertSee('data-mobile-current-page="3"', false)
+            ->assertSee('data-mobile-page-link="2"', false)
+            ->assertSee('data-mobile-page-link="4"', false);
     }
 }

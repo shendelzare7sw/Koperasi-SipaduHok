@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\MidtransStatusService;
+use App\Services\Payments\PaymentConfiguration;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class MidtransNotificationController extends Controller
 {
-    public function __invoke(Request $request, MidtransStatusService $midtrans): JsonResponse
-    {
-        if (blank(config('services.midtrans.server_key'))) {
+    public function __invoke(
+        Request $request,
+        MidtransStatusService $midtrans,
+        PaymentConfiguration $payments,
+    ): JsonResponse {
+        $serverKey = $payments->serverKey();
+
+        if (blank($serverKey)) {
             return response()->json(['message' => 'Midtrans is not configured.'], 503);
         }
 
@@ -28,7 +34,7 @@ class MidtransNotificationController extends Controller
             $payload['order_id'].
             $payload['status_code'].
             $payload['gross_amount'].
-            config('services.midtrans.server_key')
+            $serverKey
         );
 
         if (! hash_equals($expectedSignature, $payload['signature_key'])) {

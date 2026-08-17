@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\BuyerController as AdminBuyerController;
 use App\Http\Controllers\Admin\CourierController as AdminCourierController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PaymentSettingController as AdminPaymentSettingController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\ProductImportController as AdminProductImportController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\BuyerDashboardController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\IdentityDocumentController;
+use App\Http\Controllers\IdentityVerificationController;
 use App\Http\Controllers\MidtransNotificationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
@@ -54,7 +57,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/lupa-akun/atur-ulang-kata-sandi', [AccountRecoveryController::class, 'updatePassword'])->middleware('throttle:5,1')->name('password.update');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/akun/profil', [AccountController::class, 'editProfile'])->name('account.profile.edit');
     Route::patch('/akun/profil', [AccountController::class, 'updateProfile'])->name('account.profile.update');
     Route::get('/akun/keamanan', [AccountController::class, 'editSecurity'])->name('account.security.edit');
@@ -62,9 +65,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifikasi', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifikasi/baca-semua', [NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::post('/notifikasi/{notification}/buka', [NotificationController::class, 'open'])->name('notifications.open');
+    Route::get('/dokumen-identitas/{identityVerification}', IdentityDocumentController::class)->name('identity.document');
 });
 
-Route::middleware(['auth', 'role:pembeli'])->group(function () {
+Route::middleware(['auth', 'active', 'role:pembeli'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', BuyerDashboardController::class)->name('buyer.dashboard');
     Route::get('/akun/alamat', [AddressController::class, 'index'])->name('account.addresses.index');
@@ -72,6 +76,8 @@ Route::middleware(['auth', 'role:pembeli'])->group(function () {
     Route::put('/akun/alamat/{address}', [AddressController::class, 'update'])->name('account.addresses.update');
     Route::patch('/akun/alamat/{address}/utama', [AddressController::class, 'setPrimary'])->name('account.addresses.primary');
     Route::delete('/akun/alamat/{address}', [AddressController::class, 'destroy'])->name('account.addresses.destroy');
+    Route::get('/akun/verifikasi-identitas', [IdentityVerificationController::class, 'edit'])->name('account.identity.edit');
+    Route::post('/akun/verifikasi-identitas', [IdentityVerificationController::class, 'update'])->name('account.identity.update');
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
     Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
@@ -92,20 +98,29 @@ Route::middleware(['auth', 'role:pembeli'])->group(function () {
     Route::post('/pesanan/item/{orderItem}/ulasan', [ReviewController::class, 'store'])->name('reviews.store');
 });
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'active', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::get('/products/import', [AdminProductImportController::class, 'index'])->name('products.import.index');
     Route::get('/products/import/template', [AdminProductImportController::class, 'downloadTemplate'])->name('products.import.template');
     Route::post('/products/import', [AdminProductImportController::class, 'store'])->name('products.import.store');
+    Route::get('/products/archived', [AdminProductController::class, 'archived'])->name('products.archived');
+    Route::patch('/products/{product}/restore', [AdminProductController::class, 'restore'])->whereNumber('product')->name('products.restore');
+    Route::delete('/products/{product}/force', [AdminProductController::class, 'forceDestroy'])->whereNumber('product')->name('products.force-destroy');
     Route::resource('products', AdminProductController::class)->except('show');
     Route::delete('/products/{product}/images/{productImage}', [AdminProductController::class, 'destroyImage'])->name('products.images.destroy');
     Route::get('/buyers', [AdminBuyerController::class, 'index'])->name('buyers.index');
+    Route::get('/buyers/{buyer}', [AdminBuyerController::class, 'show'])->name('buyers.show');
+    Route::patch('/buyers/{buyer}/status', [AdminBuyerController::class, 'toggleActive'])->name('buyers.toggle-active');
+    Route::patch('/buyers/{buyer}/identity/approve', [AdminBuyerController::class, 'approve'])->name('buyers.identity.approve');
+    Route::patch('/buyers/{buyer}/identity/reject', [AdminBuyerController::class, 'reject'])->name('buyers.identity.reject');
     Route::get('/reports/sales', AdminSalesReportController::class)->name('reports.sales');
     Route::get('/courier', [AdminCourierController::class, 'edit'])->name('courier.edit');
     Route::put('/courier', [AdminCourierController::class, 'update'])->name('courier.update');
     Route::get('/settings/store', [AdminStoreSettingController::class, 'edit'])->name('settings.store.edit');
     Route::put('/settings/store', [AdminStoreSettingController::class, 'update'])->name('settings.store.update');
+    Route::get('/settings/payment', [AdminPaymentSettingController::class, 'edit'])->name('settings.payment.edit');
+    Route::put('/settings/payment', [AdminPaymentSettingController::class, 'update'])->name('settings.payment.update');
     Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->name('orders.invoice');
     Route::get('/orders/{order}/label', [AdminOrderController::class, 'label'])->name('orders.label');

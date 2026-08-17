@@ -50,15 +50,15 @@ class PageController extends Controller
     public function privacy(): View
     {
         return $this->page('Kebijakan Privasi', 'Perlindungan data', [
-            ['title' => 'Data yang diproses', 'paragraphs' => ['Sistem menyimpan nama, email, nomor HP, data siswa/kelas, alamat pengiriman, detail pesanan, serta status pembayaran yang dibutuhkan untuk menjalankan transaksi koperasi.']],
-            ['title' => 'Penggunaan dan keamanan', 'items' => ['Data digunakan untuk autentikasi, pemrosesan pesanan, pembayaran, pengiriman, invoice, dan dukungan.', 'Koperasi tidak menjual data pribadi kepada pihak lain.', 'Data pembayaran sensitif diproses oleh payment gateway; sistem koperasi hanya menyimpan referensi dan status transaksi.', 'Pengguna bertanggung jawab menjaga kerahasiaan kata sandi akun.']],
+            ['title' => 'Data yang diproses', 'paragraphs' => ['Sistem menyimpan nama, email, nomor HP, data siswa/kelas, alamat pengiriman, detail pesanan, status pembayaran, serta data verifikasi identitas berupa nama sesuai KTP, NIK, dan foto KTP yang dibutuhkan untuk pemeriksaan akun pembeli.']],
+            ['title' => 'Penggunaan dan keamanan', 'items' => ['Data digunakan untuk autentikasi, verifikasi identitas, pemrosesan pesanan, pembayaran, pengiriman, invoice, dan dukungan.', 'NIK dienkripsi dan foto KTP disimpan pada storage privat yang hanya dapat dibuka pemilik akun serta admin berwenang.', 'Koperasi tidak menjual data pribadi kepada pihak lain.', 'Data pembayaran sensitif diproses oleh payment gateway; sistem koperasi hanya menyimpan referensi dan status transaksi.', 'Pengguna bertanggung jawab menjaga kerahasiaan kata sandi akun.']],
         ]);
     }
 
     public function terms(): View
     {
         return $this->page('Syarat & Ketentuan', 'Ketentuan penggunaan', [
-            ['title' => 'Penggunaan layanan', 'items' => ['Pengguna harus memberikan data akun, siswa, penerima, dan alamat yang benar.', 'Harga, stok, tarif kurir, dan ketersediaan produk mengikuti informasi saat checkout.', 'Invoice elektronik merupakan catatan transaksi resmi Koperasi Sipaduhok.', 'Penyalahgunaan akun atau transaksi dapat menyebabkan pembatasan layanan.']],
+            ['title' => 'Penggunaan layanan', 'items' => ['Pengguna harus memberikan data akun, KTP, siswa, penerima, dan alamat yang benar.', 'Checkout hanya tersedia setelah verifikasi KTP disetujui admin koperasi.', 'Harga, stok, tarif kurir, dan ketersediaan produk mengikuti informasi saat checkout.', 'Invoice elektronik merupakan catatan transaksi resmi Koperasi Sipaduhok.', 'Penyalahgunaan akun atau transaksi dapat menyebabkan pembatasan layanan.']],
             ['title' => 'Penyelesaian kendala', 'paragraphs' => ['Kendala transaksi diselesaikan langsung antara pembeli dan admin Koperasi Sipaduhok berdasarkan invoice, status pembayaran, histori pesanan, dan bukti pengiriman di dalam sistem.']],
         ]);
     }

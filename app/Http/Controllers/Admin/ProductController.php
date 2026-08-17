@@ -26,6 +26,18 @@ class ProductController extends Controller
         return view('admin.products.index', compact('products'));
     }
 
+    public function archived(Request $request): View
+    {
+        $products = Product::onlyTrashed()
+            ->withCount('images')
+            ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%'.$request->string('search').'%'))
+            ->latest('deleted_at')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.products.archived', compact('products'));
+    }
+
     public function create(): View
     {
         return view('admin.products.create', ['categories' => Product::CATEGORIES]);
@@ -75,6 +87,31 @@ class ProductController extends Controller
         $product->delete();
 
         return back()->with('success', 'Produk dinonaktifkan dan dipindahkan ke arsip.');
+    }
+
+    public function restore(int $product): RedirectResponse
+    {
+        $archivedProduct = Product::onlyTrashed()->findOrFail($product);
+        $archivedProduct->restore();
+
+        return back()->with('success', "Produk {$archivedProduct->name} berhasil dipulihkan.");
+    }
+
+    public function forceDestroy(int $product): RedirectResponse
+    {
+        $archivedProduct = Product::onlyTrashed()->with('images')->findOrFail($product);
+        $imagePaths = $archivedProduct->images->pluck('image_path')
+            ->push($archivedProduct->image_path)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $productName = $archivedProduct->name;
+
+        $archivedProduct->forceDelete();
+        Storage::disk('public')->delete($imagePaths);
+
+        return back()->with('success', "Produk {$productName} dan seluruh fotonya dihapus permanen.");
     }
 
     public function destroyImage(Product $product, ProductImage $productImage): RedirectResponse

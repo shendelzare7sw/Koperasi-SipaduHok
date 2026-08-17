@@ -8,11 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Payments\PaymentConfiguration;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(PaymentConfiguration $payments): View
     {
         return view('admin.dashboard', [
             'productCount' => Product::count(),
@@ -30,6 +31,7 @@ class DashboardController extends Controller
             'buyerCount' => User::where('role', UserRole::Buyer->value)->count(),
             'completedRevenue' => Order::where('status', OrderStatus::Completed->value)->sum('total'),
             'recentOrders' => Order::with('buyer')->latest()->limit(8)->get(),
+            'paymentStatus' => $payments->status(),
         ]);
     }
 }

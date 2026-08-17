@@ -1,6 +1,6 @@
 <x-layouts.app title="Pembayaran {{ $order->invoice_number }}">
     @push('head')
-        <script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
+        <script src="{{ $snapScriptUrl }}" data-client-key="{{ $midtransClientKey }}"></script>
     @endpush
 
     <div class="mx-auto max-w-2xl">

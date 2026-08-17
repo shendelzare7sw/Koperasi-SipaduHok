@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Services\MidtransStatusService;
 use App\Services\OrderWorkflowService;
+use App\Services\Payments\PaymentConfiguration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -39,15 +40,19 @@ class OrderController extends Controller
         return view('orders.invoice', ['order' => $order->load(['items', 'buyer'])]);
     }
 
-    public function payment(Request $request, Order $order, PaymentGateway $gateway): View|RedirectResponse
-    {
+    public function payment(
+        Request $request,
+        Order $order,
+        PaymentGateway $gateway,
+        PaymentConfiguration $payments,
+    ): View|RedirectResponse {
         $this->authorizeOwner($request, $order);
 
         if ($order->payment_status === PaymentStatus::Paid) {
             return redirect()->route('orders.show', $order)->with('success', 'Pembayaran pesanan sudah diterima.');
         }
 
-        if ($order->payment_gateway !== 'midtrans' || config('services.payment_gateway') !== 'midtrans') {
+        if ($order->payment_gateway !== 'midtrans' || ! $payments->isMidtransEnabled()) {
             return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Pembayaran Midtrans tidak aktif untuk pesanan ini.']);
         }
 
@@ -68,7 +73,11 @@ class OrderController extends Controller
             }
         }
 
-        return view('orders.payment', compact('order'));
+        return view('orders.payment', [
+            'order' => $order,
+            'midtransClientKey' => $payments->clientKey(),
+            'snapScriptUrl' => $payments->snapScriptUrl(),
+        ]);
     }
 
     public function syncPayment(Request $request, Order $order, MidtransStatusService $midtrans): RedirectResponse

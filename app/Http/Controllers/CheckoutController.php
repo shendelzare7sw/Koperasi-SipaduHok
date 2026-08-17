@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Services\OrderNotificationService;
+use App\Services\Payments\PaymentConfiguration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,7 @@ class CheckoutController extends Controller
         return redirect()->route('checkout.create', ['items' => [$cartItem->id]]);
     }
 
-    public function create(Request $request): View|RedirectResponse
+    public function create(Request $request, PaymentConfiguration $payments): View|RedirectResponse
     {
         $selectedIds = collect($request->input('items', []))
             ->filter(fn ($id) => filter_var($id, FILTER_VALIDATE_INT) !== false)
@@ -63,6 +64,12 @@ class CheckoutController extends Controller
             ]);
         }
 
+        if (! $request->user()->isIdentityVerified()) {
+            return redirect()->route('account.identity.edit')->withErrors([
+                'identity' => 'Verifikasi KTP harus disetujui admin sebelum Anda dapat checkout.',
+            ]);
+        }
+
         $addresses = $request->user()->addresses()->latest('is_primary')->latest()->get();
 
         if ($addresses->isEmpty()) {
@@ -79,6 +86,7 @@ class CheckoutController extends Controller
             'courier' => Courier::where('code', 'main')->where('is_active', true)->first(),
             'paymentMethods' => PaymentMethod::cases(),
             'addresses' => $addresses,
+            'paymentStatus' => $payments->status(),
         ]);
     }
 
@@ -86,7 +94,20 @@ class CheckoutController extends Controller
         Request $request,
         PaymentGateway $gateway,
         OrderNotificationService $notifications,
+        PaymentConfiguration $payments,
     ): RedirectResponse {
+        if (! $request->user()->isIdentityVerified()) {
+            throw ValidationException::withMessages([
+                'identity' => 'Akun pembeli belum lolos verifikasi KTP oleh admin.',
+            ]);
+        }
+
+        if (! $payments->isCheckoutReady()) {
+            throw ValidationException::withMessages([
+                'payment' => 'Checkout sedang dinonaktifkan karena konfigurasi Midtrans belum lengkap.',
+            ]);
+        }
+
         $validated = $request->validate([
             'address_id' => ['required', 'integer'],
             'student_name' => ['required', 'string', 'max:255'],
@@ -107,7 +128,7 @@ class CheckoutController extends Controller
         $validated['phone'] = $address->phone;
         $validated['delivery_address'] = $address->formattedAddress();
 
-        $order = DB::transaction(function () use ($request, $validated) {
+        $order = DB::transaction(function () use ($request, $validated, $payments) {
             $selectedIds = collect($validated['cart_item_ids'])->map(fn ($id) => (int) $id)->unique()->values();
             $cartItems = CartItem::query()
                 ->where('user_id', $request->user()->id)
@@ -149,7 +170,7 @@ class CheckoutController extends Controller
                 'shipping_cost' => $shippingCost,
                 'status' => OrderStatus::PendingPayment,
                 'payment_status' => PaymentStatus::Unpaid,
-                'payment_gateway' => config('services.payment_gateway', 'placeholder'),
+                'payment_gateway' => $payments->gateway(),
                 'subtotal' => $subtotal,
                 'total' => $subtotal + $shippingCost,
             ]);

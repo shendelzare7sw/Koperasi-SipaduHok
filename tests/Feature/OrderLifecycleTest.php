@@ -21,7 +21,7 @@ class OrderLifecycleTest extends TestCase
     public function test_order_uses_single_store_courier_and_internal_delivery_confirmation(): void
     {
         Storage::fake('public');
-        $buyer = User::factory()->create();
+        $buyer = User::factory()->identityVerified()->create();
         $address = $buyer->addresses()->create([
             'label' => 'Rumah',
             'recipient_name' => 'Pembeli Koperasi',

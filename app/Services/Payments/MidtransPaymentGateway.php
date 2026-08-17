@@ -12,6 +12,8 @@ use RuntimeException;
 
 class MidtransPaymentGateway implements PaymentGateway
 {
+    public function __construct(private readonly PaymentConfiguration $configuration) {}
+
     public function createTransaction(Order $order): array
     {
         $this->boot();
@@ -73,14 +75,14 @@ class MidtransPaymentGateway implements PaymentGateway
 
     public function boot(): void
     {
-        $serverKey = config('services.midtrans.server_key');
+        $serverKey = $this->configuration->serverKey();
 
         if (blank($serverKey)) {
             throw new RuntimeException('MIDTRANS_SERVER_KEY belum dikonfigurasi.');
         }
 
         Config::$serverKey = $serverKey;
-        Config::$isProduction = (bool) config('services.midtrans.is_production');
+        Config::$isProduction = $this->configuration->isProduction();
         Config::$isSanitized = true;
         Config::$is3ds = true;
     }

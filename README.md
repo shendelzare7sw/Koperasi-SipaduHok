@@ -19,6 +19,8 @@ Target produksi: `https://koperasi.sipaduhok.id`.
 
 Registrasi publik selalu membuat akun `pembeli`, tetapi data user baru disimpan setelah kode OTP email berhasil diverifikasi. Akun admin dibuat melalui seeder/environment.
 
+Sebelum checkout, pembeli wajib mengirim foto KTP dan menunggu persetujuan admin. Dokumen disimpan pada disk privat (`storage/app/private`), NIK disimpan terenkripsi, dan route dokumen hanya dapat dibuka oleh pemilik atau admin. Admin dapat menonaktifkan akun pembeli; tindakan ini mencabut seluruh sesi aktif dan mencegah login berikutnya.
+
 ## Keamanan akun
 
 - Login, registrasi, dan formulir pemulihan akun dilindungi Cloudflare Turnstile dengan validasi wajib di server.
@@ -70,6 +72,10 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 - Label pengiriman cetak untuk Kurir Koperasi
 - Halaman tentang, bantuan, pembayaran, pengiriman, pengembalian, privasi, dan syarat ketentuan
 - Identitas/kontak publik koperasi dapat diatur melalui panel admin
+- Arsip produk dengan pemulihan dan hapus permanen; hapus permanen sekaligus membersihkan semua file galeri produk
+- Kelola pembeli dengan filter status akun/KTP, pemeriksaan KTP, riwayat pesanan, serta aktif/nonaktif akun
+- Panel konfigurasi Midtrans dengan penyimpanan key terenkripsi dan konfirmasi kata sandi admin
+- Landing katalog ringkas dengan pencarian dan shortcut ikon kategori; halaman hasil memakai sortir terpisah, sidebar filter desktop, serta drawer filter kiri pada mobile
 
 Hasil audit serta keputusan adaptasi fitur dari DigiRack dicatat di [`docs/digirack-feature-reconciliation.md`](docs/digirack-feature-reconciliation.md).
 
@@ -110,8 +116,13 @@ Untuk mengaktifkan Midtrans Sandbox:
 PAYMENT_GATEWAY=midtrans
 MIDTRANS_SERVER_KEY=SB-Mid-server-...
 MIDTRANS_CLIENT_KEY=SB-Mid-client-...
+MIDTRANS_MERCHANT_ID=G123456789
 MIDTRANS_IS_PRODUCTION=false
 ```
+
+Admin juga dapat membuka **Admin → Pembayaran** untuk mengatur konfigurasi yang sama melalui UI. Nilai dari panel menjadi override `.env`; Server Key dan Client Key dienkripsi memakai `APP_KEY`, tidak ditampilkan kembali, dan perubahan memerlukan kata sandi admin. Biarkan kolom key kosong saat menyimpan jika ingin mempertahankan key yang sudah tersimpan atau fallback dari `.env`.
+
+Mode `placeholder` hanya dapat checkout pada environment `local` atau `testing`. Pada production, checkout terkunci sampai konfigurasi Midtrans lengkap dan diaktifkan.
 
 Atur Payment Notification URL di dashboard Midtrans ke:
 
@@ -132,7 +143,7 @@ vendor\bin\pint --test
 npm run build
 ```
 
-Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas koperasi, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
+Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, verifikasi KTP privat, aktivasi/nonaktivasi pembeli, arsip/pulihkan/hapus permanen produk, panel Midtrans terenkripsi, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas koperasi, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
 
 ## Struktur fitur utama
 

@@ -18,7 +18,7 @@ class CheckoutSelectionAndMidtransTest extends TestCase
 
     public function test_checkout_redirects_buyer_without_address_to_address_management(): void
     {
-        $buyer = User::factory()->create();
+        $buyer = User::factory()->identityVerified()->create();
         $product = Product::factory()->create(['stock' => 10]);
         $cartItem = CartItem::create([
             'user_id' => $buyer->id,
@@ -36,7 +36,7 @@ class CheckoutSelectionAndMidtransTest extends TestCase
     {
         config()->set('services.payment_gateway', 'placeholder');
 
-        $buyer = User::factory()->create();
+        $buyer = User::factory()->identityVerified()->create();
         $buyer->addresses()->create([
             'label' => 'Rumah',
             'recipient_name' => $buyer->name,
@@ -76,7 +76,7 @@ class CheckoutSelectionAndMidtransTest extends TestCase
     {
         config()->set('services.payment_gateway', 'placeholder');
 
-        $buyer = User::factory()->create();
+        $buyer = User::factory()->identityVerified()->create();
         $address = $buyer->addresses()->create([
             'label' => 'Rumah',
             'recipient_name' => 'Pembeli',

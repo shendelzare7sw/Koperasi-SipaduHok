@@ -32,6 +32,7 @@ class BuyerDashboardController extends Controller
             'recommendedProducts' => Product::query()->with('images')->withCount('reviews')->withAvg('reviews', 'rating')->where('is_active', true)->where('stock', '>', 0)->latest()->limit(4)->get(),
             'wishlistIds' => $request->user()->wishlists()->pluck('product_id')->all(),
             'categories' => Product::CATEGORIES,
+            'identityVerification' => $request->user()->identityVerification()->first(),
         ]);
     }
 }

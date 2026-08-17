@@ -19,7 +19,7 @@
 
         <div class="max-h-96 overflow-y-auto">
             @forelse($latestNotifications as $notification)
-                <form method="POST" action="{{ route('notifications.open', $notification) }}" data-confirm="Notifikasi akan ditandai sudah dibaca dan detail pesanannya dibuka." data-confirm-title="Buka detail pesanan?" data-confirm-button="Ya, buka">
+                <form method="POST" action="{{ route('notifications.open', $notification) }}" data-confirm="Notifikasi akan ditandai sudah dibaca dan halaman terkait dibuka." data-confirm-title="Buka notifikasi?" data-confirm-button="Ya, buka">
                     @csrf
                     <button class="flex w-full gap-3 border-b border-slate-100 px-4 py-3 text-left transition hover:bg-blue-50 {{ $notification->read_at ? 'bg-white' : 'bg-blue-50/60' }}">
                         <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl {{ $notification->read_at ? 'bg-slate-100 text-slate-500' : 'bg-primary text-white' }}">

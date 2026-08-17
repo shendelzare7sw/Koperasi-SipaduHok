@@ -2,6 +2,7 @@
 
 namespace App\View\Components\Layouts;
 
+use App\Models\IdentityVerification;
 use App\Models\StoreSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -29,6 +30,9 @@ class App extends Component
             'storeSettings' => Schema::hasTable('store_settings')
                 ? StoreSetting::values()
                 : StoreSetting::DEFAULTS,
+            'pendingIdentityCount' => $user && $user->isAdmin() && Schema::hasTable('identity_verifications')
+                ? IdentityVerification::where('status', IdentityVerification::STATUS_PENDING)->count()
+                : 0,
         ]);
     }
 }

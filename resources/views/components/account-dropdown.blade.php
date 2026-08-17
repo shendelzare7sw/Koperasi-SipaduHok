@@ -18,6 +18,7 @@
                 <a href="{{ route('admin.settings.store.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-store w-5 text-center" aria-hidden="true"></i>Identitas Koperasi</a>
             @endif
             @unless(auth()->user()->isAdmin())
+                <a href="{{ route('account.identity.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-id-card w-5 text-center" aria-hidden="true"></i>Verifikasi KTP</a>
                 <a href="{{ route('wishlist.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-heart w-5 text-center" aria-hidden="true"></i><span class="flex-1">Wishlist</span>@if($wishlistCount > 0)<span class="rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $wishlistCount }}</span>@endif</a>
                 <a href="{{ route('account.addresses.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-location-dot w-5 text-center" aria-hidden="true"></i>Alamat Tersimpan</a>
             @endunless

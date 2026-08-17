@@ -29,7 +29,8 @@ class NotificationController extends Controller
         $order = Order::find($notification->data['order_id'] ?? null);
 
         if (! $order) {
-            return redirect()->route('notifications.index')->with('success', 'Notifikasi ditandai sudah dibaca.');
+            return $this->identityDestination($request, $notification)
+                ?? redirect()->route('notifications.index')->with('success', 'Notifikasi ditandai sudah dibaca.');
         }
 
         if (! $request->user()->isAdmin() && $order->user_id !== $request->user()->id) {
@@ -40,6 +41,25 @@ class NotificationController extends Controller
             $request->user()->isAdmin() ? 'admin.orders.show' : 'orders.show',
             $order,
         );
+    }
+
+    private function identityDestination(Request $request, DatabaseNotification $notification): ?RedirectResponse
+    {
+        $destination = $notification->data['destination'] ?? null;
+
+        if ($destination === 'account.identity.edit' && ! $request->user()->isAdmin()) {
+            return redirect()->route('account.identity.edit');
+        }
+
+        if ($destination === 'admin.buyers.show' && $request->user()->isAdmin()) {
+            $buyer = $notification->data['buyer_id'] ?? null;
+
+            if ($buyer) {
+                return redirect()->route('admin.buyers.show', $buyer);
+            }
+        }
+
+        return null;
     }
 
     public function readAll(Request $request): RedirectResponse

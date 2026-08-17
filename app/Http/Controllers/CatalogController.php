@@ -20,7 +20,12 @@ class CatalogController extends Controller
             ->withAvg('reviews', 'rating')
             ->where('is_active', true)
             ->when($request->filled('category'), fn ($query) => $query->where('category', $request->string('category')))
-            ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%'.$request->string('search').'%'))
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->string('search')->value();
+                $query->where(fn ($nested) => $nested
+                    ->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('description', 'like', '%'.$search.'%'));
+            })
             ->when($minimumPrice !== null, fn ($query) => $query->where('price', '>=', $minimumPrice))
             ->when($maximumPrice !== null, fn ($query) => $query->where('price', '<=', $maximumPrice))
             ->when($request->filled('rating'), function ($query) use ($request) {
@@ -48,9 +53,21 @@ class CatalogController extends Controller
             ? Auth::user()->wishlists()->pluck('product_id')->all()
             : [];
 
+        $categoryCounts = Product::query()
+            ->where('is_active', true)
+            ->selectRaw('category, COUNT(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
+        $catalogMode = collect(['search', 'category', 'min_price', 'max_price', 'rating', 'sort'])
+            ->contains(fn ($key) => $request->filled($key))
+            || $request->integer('page') > 1;
+
         return view('catalog.index', [
             'products' => $products,
             'categories' => Product::CATEGORIES,
+            'categoryCounts' => $categoryCounts,
+            'catalogMode' => $catalogMode,
             'wishlistIds' => $wishlistIds,
         ]);
     }

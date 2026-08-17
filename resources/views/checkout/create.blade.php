@@ -75,6 +75,13 @@
 
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-primary"><i class="fas fa-wallet" aria-hidden="true"></i></span><h2 class="text-lg font-black text-slate-900">Metode Pembayaran</h2></div>
+                @if($paymentStatus['ready'])
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><i class="fas fa-shield-halved mt-0.5" aria-hidden="true"></i><p><strong>Midtrans {{ $paymentStatus['environment'] === 'production' ? 'Production' : 'Sandbox' }} aktif.</strong><br>Status pembayaran diverifikasi melalui callback server-to-server.</p></div>
+                @elseif($paymentStatus['enabled'])
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><i class="fas fa-triangle-exclamation mt-0.5" aria-hidden="true"></i><p><strong>Checkout sementara tidak tersedia.</strong><br>Konfigurasi Midtrans belum lengkap dan perlu diperbaiki admin.</p></div>
+                @else
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"><i class="fas fa-flask mt-0.5" aria-hidden="true"></i><p><strong>Mode pembayaran development.</strong><br>Transaksi nyata baru tersedia setelah Midtrans diaktifkan admin.</p></div>
+                @endif
                 <div class="mt-4 grid gap-3 sm:grid-cols-2">
                     @foreach($paymentMethods as $method)
                         <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-primary/40"><input type="radio" name="payment_method" value="{{ $method->value }}" required @checked(old('payment_method', 'qris') === $method->value) class="text-primary focus:ring-primary"> <span class="font-bold">{{ $method->label() }}</span></label>
@@ -94,7 +101,7 @@
                 <div class="flex justify-between"><span>Kurir Koperasi</span><span>{{ $courier ? 'Rp '.number_format($courier->fee, 0, ',', '.') : '-' }}</span></div>
                 <div class="flex justify-between border-t border-white/20 pt-3 text-lg font-black"><span>Total</span><span>Rp {{ number_format($subtotal + ($courier?->fee ?? 0), 0, ',', '.') }}</span></div>
             </div>
-            <button @disabled(!$courier) class="mt-6 w-full rounded-xl bg-white px-4 py-3 font-bold text-primary transition hover:bg-accent-yellow hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"><i class="fas fa-lock mr-2" aria-hidden="true"></i>Buat Pesanan</button>
+            <button @disabled(!$courier || ! $paymentStatus['checkout_ready']) class="mt-6 w-full rounded-xl bg-white px-4 py-3 font-bold text-primary transition hover:bg-accent-yellow hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"><i class="fas fa-lock mr-2" aria-hidden="true"></i>Buat Pesanan</button>
             <p class="mt-3 text-center text-[11px] leading-5 text-blue-100">Alamat dan tarif kurir disimpan sebagai snapshot pada invoice.</p>
         </aside>
     </form>

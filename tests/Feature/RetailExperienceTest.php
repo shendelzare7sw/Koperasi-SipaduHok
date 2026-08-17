@@ -21,7 +21,7 @@ class RetailExperienceTest extends TestCase
 
     public function test_buyer_can_create_update_prioritize_and_delete_detailed_addresses(): void
     {
-        $buyer = User::factory()->create();
+        $buyer = User::factory()->identityVerified()->create();
         $payload = [
             'label' => 'Rumah',
             'recipient_name' => 'Penerima Utama',
@@ -65,7 +65,7 @@ class RetailExperienceTest extends TestCase
     public function test_saved_address_is_owned_by_buyer_and_used_at_checkout(): void
     {
         config()->set('services.payment_gateway', 'placeholder');
-        $buyer = User::factory()->create();
+        $buyer = User::factory()->identityVerified()->create();
         $otherBuyer = User::factory()->create();
         $address = $buyer->addresses()->create([
             'label' => 'Rumah',

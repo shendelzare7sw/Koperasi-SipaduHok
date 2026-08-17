@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'phone', 'role', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'role', 'is_active', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,6 +31,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'is_active' => 'boolean',
         ];
     }
 
@@ -46,6 +48,19 @@ class User extends Authenticatable
     public function addresses(): HasMany
     {
         return $this->hasMany(Address::class);
+    }
+
+    public function identityVerification(): HasOne
+    {
+        return $this->hasOne(IdentityVerification::class);
+    }
+
+    public function isIdentityVerified(): bool
+    {
+        return $this->isAdmin()
+            || $this->identityVerification()
+                ->where('status', IdentityVerification::STATUS_VERIFIED)
+                ->exists();
     }
 
     public function wishlists(): HasMany

@@ -5,6 +5,7 @@
             <p class="text-slate-500">Buku, alat tulis, dan atribut sekolah.</p>
         </div>
         <div class="grid gap-2 sm:flex">
+            <a href="{{ route('admin.products.archived') }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-bold text-slate-600 hover:border-primary hover:text-primary"><i class="fas fa-box-archive" aria-hidden="true"></i>Arsip Produk</a>
             <a href="{{ route('admin.products.import.index') }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-primary bg-white px-4 py-3 text-center font-bold text-primary hover:bg-blue-50">
                 <i class="fas fa-file-excel" aria-hidden="true"></i>
                 Import Excel

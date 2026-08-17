@@ -23,7 +23,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-3 py-4">
             <a href="{{ route('catalog.index') }}" class="flex items-center gap-3">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-12 w-12 shrink-0 object-contain drop-shadow-md sm:h-14 sm:w-14">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-16 w-16 shrink-0 object-contain drop-shadow-md sm:h-20 sm:w-20">
                 <span class="hidden sm:block">
                     <span class="block text-base font-extrabold leading-tight">Koperasi Sipaduhok</span>
                     <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah</span>
@@ -37,7 +37,9 @@
                         <a href="{{ route('admin.dashboard') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Dashboard</a>
                         <a href="{{ route('admin.products.index') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Produk</a>
                         <a href="{{ route('admin.orders.index') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Pesanan</a>
+                        <a href="{{ route('admin.buyers.index') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Pembeli</a>
                         <a href="{{ route('admin.courier.edit') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Kurir</a>
+                        <a href="{{ route('admin.settings.payment.edit') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Pembayaran</a>
                     @else
                         <a href="{{ route('buyer.dashboard') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Dashboard</a>
                         <a href="{{ route('orders.index') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Pesanan Saya</a>
@@ -80,8 +82,11 @@
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Dashboard Admin</a>
                         <a href="{{ route('admin.products.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Kelola Produk</a>
+                        <a href="{{ route('admin.products.archived') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Arsip Produk</a>
                         <a href="{{ route('admin.orders.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pesanan Masuk</a>
+                        <a href="{{ route('admin.buyers.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Kelola Pembeli</span>@if($pendingIdentityCount > 0)<span class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">{{ $pendingIdentityCount }}</span>@endif</a>
                         <a href="{{ route('admin.courier.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Kurir Toko</a>
+                        <a href="{{ route('admin.settings.payment.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pembayaran Midtrans</a>
                         <a href="{{ route('admin.settings.store.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Identitas Koperasi</a>
                         <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $unreadNotificationCount }}</span>@endif</a>
                         <a href="{{ route('account.profile.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Profil Saya</a>
@@ -94,6 +99,7 @@
                         <a href="{{ route('orders.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pesanan Saya</a>
                         <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $unreadNotificationCount }}</span>@endif</a>
                         <a href="{{ route('account.profile.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Profil Saya</a>
+                        <a href="{{ route('account.identity.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Verifikasi KTP</a>
                         <a href="{{ route('account.addresses.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Alamat Tersimpan</a>
                         <a href="{{ route('account.security.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pengaturan Akun</a>
                         <form method="POST" action="{{ route('logout') }}" data-confirm="Anda akan keluar dari akun pembeli." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">@csrf<button class="w-full rounded-lg px-3 py-2.5 text-left font-bold text-accent-yellow hover:bg-white/10">Keluar</button></form>
@@ -135,7 +141,9 @@
                 request()->routeIs('admin.products.*') => [route('admin.products.index'), 'Kembali ke Produk'],
                 request()->routeIs('admin.orders.index') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
                 request()->routeIs('admin.orders.*') => [route('admin.orders.index'), 'Kembali ke Pesanan'],
-                request()->routeIs('admin.buyers.*', 'admin.reports.*', 'admin.courier.*', 'admin.settings.*') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
+                request()->routeIs('admin.buyers.index') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
+                request()->routeIs('admin.buyers.*') => [route('admin.buyers.index'), 'Kembali ke Kelola Pembeli'],
+                request()->routeIs('admin.reports.*', 'admin.courier.*', 'admin.settings.*') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
                 default => null,
             };
         @endphp
@@ -164,7 +172,7 @@
             <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
                 <div>
                     <a href="{{ route('catalog.index') }}" class="inline-flex items-center gap-3 text-white">
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="footer" class="h-14 w-14 shrink-0 object-contain drop-shadow-lg">
+                        <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="footer" class="h-20 w-20 shrink-0 object-contain drop-shadow-lg">
                         <span>
                             <span class="block font-extrabold leading-tight">{{ $storeSettings['legal_name'] }}</span>
                             <span class="block text-xs text-blue-200">Belanja kebutuhan sekolah</span>

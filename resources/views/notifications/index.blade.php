@@ -4,7 +4,7 @@
             <div>
                 <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pusat informasi</p>
                 <h1 class="mt-1 text-3xl font-black text-slate-900">Notifikasi</h1>
-                <p class="mt-2 text-sm text-slate-500">Pantau aktivitas pembayaran dan perjalanan pesanan.</p>
+                <p class="mt-2 text-sm text-slate-500">Pantau aktivitas akun, verifikasi identitas, pembayaran, dan perjalanan pesanan.</p>
             </div>
             @if(auth()->user()->unreadNotifications()->exists())
                 <form method="POST" action="{{ route('notifications.read-all') }}" data-confirm="Seluruh notifikasi belum dibaca akan ditandai sudah dibaca." data-confirm-title="Tandai semua sudah dibaca?" data-confirm-button="Ya, tandai semua">
@@ -40,9 +40,9 @@
                                 </div>
                                 <time class="whitespace-nowrap text-xs text-slate-400">{{ $notification->created_at->diffForHumans() }}</time>
                             </div>
-                            <form method="POST" action="{{ route('notifications.open', $notification) }}" class="mt-3" data-confirm="Notifikasi akan ditandai sudah dibaca dan detail pesanannya dibuka." data-confirm-title="Buka detail pesanan?" data-confirm-button="Ya, buka">
+                            <form method="POST" action="{{ route('notifications.open', $notification) }}" class="mt-3" data-confirm="Notifikasi akan ditandai sudah dibaca dan halaman terkait dibuka." data-confirm-title="Buka notifikasi?" data-confirm-button="Ya, buka">
                                 @csrf
-                                <button class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary">Lihat Pesanan <i class="fas fa-arrow-right text-xs" aria-hidden="true"></i></button>
+                                <button class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary">Buka Detail <i class="fas fa-arrow-right text-xs" aria-hidden="true"></i></button>
                             </form>
                         </div>
                     </div>

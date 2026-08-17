@@ -11,7 +11,7 @@
     <div class="mx-auto mb-4 flex max-w-3xl justify-between print:hidden"><a href="{{ route('admin.orders.show', $order) }}" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold">Kembali</a><button onclick="window.print()" class="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">Cetak Label</button></div>
     <main class="mx-auto max-w-3xl border-4 border-slate-950 bg-white p-6 sm:p-8 print:max-w-none">
         <header class="flex items-start justify-between gap-4 border-b-4 border-slate-950 pb-5">
-            <div class="flex items-center gap-3"><img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-14 w-14 object-contain"><div><h1 class="text-xl font-black">{{ $settings['legal_name'] }}</h1><p class="text-xs">{{ $settings['support_email'] }}</p></div></div>
+            <div class="flex items-center gap-3"><img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-20 w-20 object-contain"><div><h1 class="text-xl font-black">{{ $settings['legal_name'] }}</h1><p class="text-xs">{{ $settings['support_email'] }}</p></div></div>
             <div class="text-right"><p class="text-xs font-black uppercase tracking-widest">Kurir Koperasi</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p></div>
         </header>
         <div class="mt-6 grid gap-6 sm:grid-cols-2">

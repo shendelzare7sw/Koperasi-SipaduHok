@@ -56,17 +56,71 @@
                     action="{{ route('admin.products.import.store') }}"
                     enctype="multipart/form-data"
                     class="mt-6"
-                    x-data="{ fileName: '' }"
+                    x-data="{
+                        fileName: '',
+                        fileSize: '',
+                        fileError: '',
+                        dragging: false,
+                        selectFile(file, dropped = false) {
+                            this.fileError = '';
+                            if (! file) return;
+
+                            if (! file.name.toLowerCase().endsWith('.xlsx')) {
+                                this.fileError = 'Pilih file Excel dengan ekstensi .xlsx.';
+                                this.$refs.input.value = '';
+                                this.fileName = '';
+                                this.fileSize = '';
+                                return;
+                            }
+
+                            if (file.size > 5 * 1024 * 1024) {
+                                this.fileError = 'Ukuran file melebihi batas 5 MB.';
+                                this.$refs.input.value = '';
+                                this.fileName = '';
+                                this.fileSize = '';
+                                return;
+                            }
+
+                            if (dropped) {
+                                const transfer = new DataTransfer();
+                                transfer.items.add(file);
+                                this.$refs.input.files = transfer.files;
+                            }
+
+                            this.fileName = file.name;
+                            this.fileSize = file.size < 1024 * 1024
+                                ? Math.max(1, Math.round(file.size / 1024)) + ' KB'
+                                : (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                        },
+                        clearFile() {
+                            this.$refs.input.value = '';
+                            this.fileName = '';
+                            this.fileSize = '';
+                            this.fileError = '';
+                        }
+                    }"
                     data-confirm="Seluruh isi file akan divalidasi. Produk baru disimpan hanya jika semua baris sudah benar."
                     data-confirm-title="Import produk sekarang?"
                     data-confirm-button="Ya, mulai import"
                 >
                     @csrf
                     <label for="import_file" class="block text-sm font-bold text-slate-800">File Excel produk</label>
-                    <label for="import_file" class="mt-2 flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center transition hover:border-primary hover:bg-blue-50">
-                        <i class="fas fa-cloud-arrow-up text-4xl text-primary" aria-hidden="true"></i>
-                        <span class="mt-3 font-black text-slate-800" x-text="fileName || 'Pilih file template yang sudah diisi'"></span>
-                        <span class="mt-1 text-xs text-slate-500">Klik area ini untuk memilih file .xlsx</span>
+                    <label
+                        for="import_file"
+                        class="mt-2 flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition"
+                        :class="dragging ? 'scale-[1.01] border-primary bg-blue-100 shadow-lg shadow-primary/10' : (fileName ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300 bg-slate-50 hover:border-primary hover:bg-blue-50')"
+                        @dragenter.prevent="dragging = true"
+                        @dragover.prevent="dragging = true"
+                        @dragleave.prevent="dragging = false"
+                        @drop.prevent="dragging = false; selectFile($event.dataTransfer.files[0], true)"
+                    >
+                        <span class="grid h-16 w-16 place-items-center rounded-2xl transition" :class="fileName ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-primary'">
+                            <i class="fas text-3xl" :class="fileName ? 'fa-file-circle-check' : 'fa-cloud-arrow-up'" aria-hidden="true"></i>
+                        </span>
+                        <span class="mt-4 max-w-full break-all font-black text-slate-800" x-text="fileName || (dragging ? 'Lepaskan file di sini' : 'Tarik & lepas file Excel di sini')"></span>
+                        <span x-show="fileName" x-text="fileSize" class="mt-1 text-xs font-bold text-emerald-700"></span>
+                        <span x-show="! fileName" class="mt-1 text-xs text-slate-500">atau klik area ini untuk memilih file `.xlsx` dari perangkat</span>
+                        <span x-show="fileName" class="mt-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary shadow-sm"><i class="fas fa-rotate" aria-hidden="true"></i>Klik untuk ganti file</span>
                     </label>
                     <input
                         id="import_file"
@@ -75,8 +129,10 @@
                         accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                         class="sr-only"
                         required
-                        @change="fileName = $event.target.files[0]?.name || ''"
+                        x-ref="input"
+                        @change="selectFile($event.target.files[0])"
                     >
+                    <p x-cloak x-show="fileError" x-text="fileError" class="mt-2 text-sm font-bold text-red-600"></p>
                     @error('import_file')
                         <p class="mt-2 text-sm font-bold text-red-600">{{ $message }}</p>
                     @enderror
@@ -86,7 +142,7 @@
                         <p class="mt-1 leading-6">Jika satu baris salah, semua data dibatalkan dan nomor baris yang perlu diperbaiki akan ditampilkan.</p>
                     </div>
 
-                    <button type="submit" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 font-black text-white hover:bg-secondary">
+                    <button type="submit" :disabled="! fileName || fileError" class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 font-black text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:bg-slate-300">
                         <i class="fas fa-file-import" aria-hidden="true"></i>
                         Validasi & Import Produk
                     </button>

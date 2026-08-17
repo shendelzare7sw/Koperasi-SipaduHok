@@ -57,4 +57,30 @@ class CatalogFilterExperienceTest extends TestCase
             ->assertSee('name="category"', false)
             ->assertSee('name="sort"', false);
     }
+
+    public function test_landing_uses_show_more_but_search_results_use_styled_pagination(): void
+    {
+        Product::factory()->count(13)->sequence(
+            fn ($sequence) => [
+                'name' => 'Buku Pagination '.$sequence->index,
+                'description' => 'Produk untuk pemeriksaan pagination.',
+                'category' => 'buku',
+                'is_active' => true,
+            ],
+        )->create();
+
+        $this->get(route('catalog.index'))
+            ->assertOk()
+            ->assertSee('Tampilkan lebih banyak')
+            ->assertDontSee('data-pagination', false)
+            ->assertDontSee('pagination.previous');
+
+        $this->get(route('catalog.index', ['search' => 'Pagination']))
+            ->assertOk()
+            ->assertSee('data-pagination', false)
+            ->assertSee('Halaman')
+            ->assertSee('dari')
+            ->assertDontSee('pagination.previous')
+            ->assertDontSee('pagination.next');
+    }
 }

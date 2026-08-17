@@ -46,7 +46,7 @@
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-black uppercase tracking-widest text-primary">Hasil Katalog</p>
-                    <h2 class="mt-1 text-2xl font-black text-slate-900">{{ request()->filled('search') ? 'Hasil untuk “'.request('search').'”' : 'Produk sesuai pilihan' }}</h2>
+                    <h2 class="mt-1 text-2xl font-black text-slate-900">{{ request()->filled('search') ? 'Hasil untuk “'.request('search').'”' : (request('view') === 'all' ? 'Semua Produk' : 'Produk sesuai pilihan') }}</h2>
                     <p class="mt-1 text-sm text-slate-500">Menampilkan {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} dari {{ $products->total() }} produk.</p>
                 </div>
 
@@ -105,7 +105,14 @@
                     <p class="col-span-full rounded-2xl bg-white p-8 text-center text-slate-500">Produk belum tersedia.</p>
                 @endforelse
             </div>
-            <div class="mt-8">{{ $products->links() }}</div>
+            @if($products->hasMorePages())
+                <div class="mt-8 text-center">
+                    <a href="{{ route('catalog.index', ['view' => 'all']) }}" class="inline-flex items-center gap-2 rounded-full border border-primary bg-white px-6 py-3 text-sm font-black text-primary shadow-sm transition hover:-translate-y-0.5 hover:bg-primary hover:text-white hover:shadow-lg">
+                        Tampilkan lebih banyak
+                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </a>
+                </div>
+            @endif
         </section>
     @endif
 </x-layouts.app>

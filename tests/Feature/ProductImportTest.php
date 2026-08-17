@@ -14,6 +14,20 @@ class ProductImportTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_import_field_supports_click_and_drag_drop_with_file_feedback(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->get(route('admin.products.import.index'))
+            ->assertOk()
+            ->assertSee('Tarik & lepas file Excel di sini', false)
+            ->assertSee('@drop.prevent', false)
+            ->assertSee('new DataTransfer()', false)
+            ->assertSee('x-ref="input"', false)
+            ->assertSee('Ukuran file melebihi batas 5 MB.');
+    }
+
     public function test_admin_can_download_template_with_examples_and_instructions(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

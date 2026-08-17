@@ -61,6 +61,7 @@ class CatalogController extends Controller
 
         $catalogMode = collect(['search', 'category', 'min_price', 'max_price', 'rating', 'sort'])
             ->contains(fn ($key) => $request->filled($key))
+            || $request->string('view')->value() === 'all'
             || $request->integer('page') > 1;
 
         return view('catalog.index', [

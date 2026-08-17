@@ -63,12 +63,22 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $addresses = $request->user()->addresses()->latest('is_primary')->latest()->get();
+
+        if ($addresses->isEmpty()) {
+            return redirect()->route('account.addresses.index', [
+                'checkout_items' => $items->pluck('id')->all(),
+            ])->withErrors([
+                'address' => 'Tambahkan alamat pengiriman terlebih dahulu sebelum melanjutkan checkout.',
+            ]);
+        }
+
         return view('checkout.create', [
             'items' => $items,
             'subtotal' => $items->sum('subtotal'),
             'courier' => Courier::where('code', 'main')->where('is_active', true)->first(),
             'paymentMethods' => PaymentMethod::cases(),
-            'addresses' => $request->user()->addresses()->latest('is_primary')->latest()->get(),
+            'addresses' => $addresses,
         ]);
     }
 
@@ -78,29 +88,24 @@ class CheckoutController extends Controller
         OrderNotificationService $notifications,
     ): RedirectResponse {
         $validated = $request->validate([
-            'address_id' => ['nullable', 'integer'],
-            'buyer_name' => ['required', 'string', 'max:255'],
+            'address_id' => ['required', 'integer'],
             'student_name' => ['required', 'string', 'max:255'],
             'class_name' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'max:20'],
-            'delivery_address' => ['required', 'string', 'max:1000'],
             'payment_method' => ['required', new Enum(PaymentMethod::class)],
             'notes' => ['nullable', 'string', 'max:1000'],
             'cart_item_ids' => ['required', 'array', 'min:1'],
             'cart_item_ids.*' => ['required', 'integer', 'distinct'],
         ]);
 
-        if (! empty($validated['address_id'])) {
-            $address = $request->user()->addresses()->find($validated['address_id']);
+        $address = $request->user()->addresses()->find($validated['address_id']);
 
-            if (! $address) {
-                throw ValidationException::withMessages(['address_id' => 'Alamat tersimpan tidak valid.']);
-            }
-
-            $validated['buyer_name'] = $address->recipient_name;
-            $validated['phone'] = $address->phone;
-            $validated['delivery_address'] = $address->full_address;
+        if (! $address) {
+            throw ValidationException::withMessages(['address_id' => 'Alamat tersimpan tidak valid.']);
         }
+
+        $validated['buyer_name'] = $address->recipient_name;
+        $validated['phone'] = $address->phone;
+        $validated['delivery_address'] = $address->formattedAddress();
 
         $order = DB::transaction(function () use ($request, $validated) {
             $selectedIds = collect($validated['cart_item_ids'])->map(fn ($id) => (int) $id)->unique()->values();

@@ -63,7 +63,7 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 
 - Profil, pengaturan keamanan, pemulihan akun berbasis OTP, dropdown akun, dan notifikasi database untuk kedua role
 - Galeri maksimal lima foto dengan preview sebelum upload dan lightbox pada detail produk/bukti tiba
-- Wishlist dan alamat tersimpan khusus pembeli
+- Wishlist dan CRUD alamat lengkap khusus pembeli; checkout wajib memilih alamat tersimpan dan menyimpan snapshot alamat pada pesanan/invoice
 - Ulasan hanya untuk pembelian yang selesai; admin dapat memberi balasan resmi
 - Filter katalog berdasarkan kategori, harga, rating, dan urutan
 - Import produk massal melalui template Excel dengan contoh, validasi per baris, dan dukungan kategori tambahan `Lainnya`

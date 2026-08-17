@@ -21,7 +21,7 @@
     </div>
     <main class="mx-auto max-w-4xl rounded-2xl bg-white p-6 shadow-sm sm:p-10 print:max-w-none print:rounded-none print:p-0 print:shadow-none">
         <header class="flex flex-col gap-5 border-b-4 border-primary pb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-center gap-3"><div class="grid h-14 w-14 place-items-center overflow-hidden rounded-xl bg-primary p-1"><img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-full w-full object-contain"></div><div><h1 class="text-xl font-black">Koperasi Sipaduhok</h1><p class="text-sm text-slate-500">koperasi.sipaduhok.id</p></div></div>
+            <div class="flex items-center gap-3"><img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-14 w-14 object-contain"><div><h1 class="text-xl font-black">Koperasi Sipaduhok</h1><p class="text-sm text-slate-500">koperasi.sipaduhok.id</p></div></div>
             <div class="sm:text-right"><p class="text-xs font-bold uppercase tracking-widest text-primary">Invoice</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p><p class="text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} WIB</p></div>
         </header>
 

@@ -1,6 +1,8 @@
 @csrf
 @if(isset($product)) @method('PUT') @endif
-@php($remainingImageSlots = isset($product) ? max(0, 5 - $product->images->count()) : 5)
+@php
+    $remainingImageSlots = isset($product) ? max(0, 5 - $product->images->count()) : 5;
+@endphp
 <div class="grid gap-4 sm:grid-cols-2" x-data="{ selectedCategory: @js(old('category', $product->category ?? 'buku')) }">
     <label class="text-sm font-semibold sm:col-span-2">Nama produk<input name="name" value="{{ old('name', $product->name ?? '') }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3"></label>
     <label class="text-sm font-semibold">Kategori<select name="category" x-model="selectedCategory" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3">@foreach($categories as $value => $label)<option value="{{ $value }}" @selected(old('category', $product->category ?? 'buku') === $value)>{{ $label }}</option>@endforeach</select></label>

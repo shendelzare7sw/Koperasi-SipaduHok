@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Courier;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use App\Notifications\OrderActivityNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -96,6 +97,30 @@ class AccountAndNotificationsTest extends TestCase
                 ->assertSee('aria-label="Buka menu akun"', false)
                 ->assertSee('aria-label="Buka menu utama"', false);
         }
+
+        $this->actingAs($buyer)
+            ->get(route('buyer.dashboard'))
+            ->assertSee('Alamat Tersimpan');
+    }
+
+    public function test_brand_logo_is_unboxed_and_child_pages_have_explicit_back_navigation(): void
+    {
+        $product = Product::factory()->create();
+
+        $this->get(route('catalog.show', $product))
+            ->assertOk()
+            ->assertSee('data-brand-logo="header"', false)
+            ->assertSee('data-brand-logo="footer"', false)
+            ->assertSee('data-back-link', false)
+            ->assertSee('Kembali ke Katalog')
+            ->assertDontSee('data-brand-logo-container', false);
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)
+            ->get(route('admin.products.index'))
+            ->assertOk()
+            ->assertSee('data-back-link', false)
+            ->assertSee('Kembali ke Dashboard');
     }
 
     private function createOrder(User $buyer): Order

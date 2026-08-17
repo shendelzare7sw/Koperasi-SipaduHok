@@ -1,15 +1,11 @@
 <x-layouts.app title="Import Produk Excel">
     <div class="mx-auto max-w-5xl">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
             <div>
                 <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Kelola Produk</p>
                 <h1 class="mt-1 text-3xl font-black">Import Produk dari Excel</h1>
                 <p class="mt-2 max-w-2xl text-slate-500">Tambahkan banyak produk sekaligus menggunakan template resmi Koperasi Sipaduhok.</p>
             </div>
-            <a href="{{ route('admin.products.index') }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-700 hover:bg-slate-50">
-                <i class="fas fa-arrow-left" aria-hidden="true"></i>
-                Kembali ke Produk
-            </a>
         </div>
 
         @if (session('import_errors'))

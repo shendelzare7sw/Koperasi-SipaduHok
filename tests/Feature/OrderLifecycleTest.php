@@ -22,6 +22,18 @@ class OrderLifecycleTest extends TestCase
     {
         Storage::fake('public');
         $buyer = User::factory()->create();
+        $address = $buyer->addresses()->create([
+            'label' => 'Rumah',
+            'recipient_name' => 'Pembeli Koperasi',
+            'phone' => '081234567890',
+            'full_address' => 'Jl. Sekolah No. 1',
+            'village' => 'Kelurahan Belajar',
+            'district' => 'Kecamatan Cerdas',
+            'city' => 'Jakarta Selatan',
+            'province' => 'DKI Jakarta',
+            'postal_code' => '12345',
+            'is_primary' => true,
+        ]);
         $admin = User::factory()->admin()->create();
         $product = Product::factory()->create(['name' => 'Buku Matematika', 'price' => 50000, 'stock' => 10]);
         Courier::create([
@@ -34,11 +46,9 @@ class OrderLifecycleTest extends TestCase
         $cartItem = CartItem::create(['user_id' => $buyer->id, 'product_id' => $product->id, 'quantity' => 2]);
 
         $checkout = $this->actingAs($buyer)->post(route('checkout.store'), [
-            'buyer_name' => 'Pembeli Koperasi',
+            'address_id' => $address->id,
             'student_name' => 'Siswa Contoh',
             'class_name' => 'VIII-A',
-            'phone' => '081234567890',
-            'delivery_address' => 'Jl. Sekolah No. 1, Jakarta',
             'payment_method' => 'qris',
             'notes' => 'Antar setelah jam sekolah.',
             'cart_item_ids' => [$cartItem->id],
@@ -48,6 +58,7 @@ class OrderLifecycleTest extends TestCase
         $checkout->assertRedirect(route('orders.show', $order));
         $this->assertSame(112000, $order->total);
         $this->assertSame('Kurir Koperasi', $order->courier_name);
+        $this->assertStringContainsString('Kelurahan Belajar', $order->delivery_address);
         $this->assertSame(OrderStatus::PendingPayment, $order->status);
         $this->assertSame(PaymentStatus::Pending, $order->payment_status);
         $this->assertSame(10, $product->fresh()->stock, 'Stok belum berkurang sebelum pembayaran terkonfirmasi.');

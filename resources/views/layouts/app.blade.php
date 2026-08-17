@@ -23,9 +23,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-3 py-4">
             <a href="{{ route('catalog.index') }}" class="flex items-center gap-3">
-                <span class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1 shadow-sm">
-                    <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-full w-full object-contain">
-                </span>
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-12 w-12 shrink-0 object-contain drop-shadow-md sm:h-14 sm:w-14">
                 <span class="hidden sm:block">
                     <span class="block text-base font-extrabold leading-tight">Koperasi Sipaduhok</span>
                     <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah</span>
@@ -46,7 +44,9 @@
                         <a href="{{ route('wishlist.index') }}" class="relative rounded-full px-3 py-2 hover:bg-white/10" aria-label="Wishlist"><i class="fas fa-heart" aria-hidden="true"></i>@if($wishlistCount > 0)<span class="ml-1 inline-grid min-w-5 place-items-center rounded-full bg-accent-yellow px-1.5 py-0.5 text-[10px] font-black text-slate-950">{{ $wishlistCount }}</span>@endif</a>
                         <a href="{{ route('cart.index') }}" class="relative rounded-full px-3 py-2 hover:bg-white/10">
                             Keranjang
-                            @php($cartCount = auth()->user()->cartItems()->sum('quantity'))
+                            @php
+                                $cartCount = auth()->user()->cartItems()->sum('quantity');
+                            @endphp
                             @if($cartCount > 0)
                                 <span class="ml-1 inline-grid min-w-5 place-items-center rounded-full bg-accent-yellow px-1.5 py-0.5 text-[10px] font-black text-slate-950">{{ $cartCount }}</span>
                             @endif
@@ -94,6 +94,7 @@
                         <a href="{{ route('orders.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pesanan Saya</a>
                         <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $unreadNotificationCount }}</span>@endif</a>
                         <a href="{{ route('account.profile.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Profil Saya</a>
+                        <a href="{{ route('account.addresses.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Alamat Tersimpan</a>
                         <a href="{{ route('account.security.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pengaturan Akun</a>
                         <form method="POST" action="{{ route('logout') }}" data-confirm="Anda akan keluar dari akun pembeli." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">@csrf<button class="w-full rounded-lg px-3 py-2.5 text-left font-bold text-accent-yellow hover:bg-white/10">Keluar</button></form>
                     @endif
@@ -112,6 +113,34 @@
             <div class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
                 <ul class="list-inside list-disc space-y-1">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
             </div>
+        @endif
+        @php
+            $dashboardUrl = auth()->check() && auth()->user()->isAdmin()
+                ? route('admin.dashboard')
+                : (auth()->check() ? route('buyer.dashboard') : route('catalog.index'));
+            $backNavigation = match (true) {
+                request()->routeIs('catalog.index', 'buyer.dashboard', 'admin.dashboard') => null,
+                request()->routeIs('catalog.show', 'pages.*') => [route('catalog.index'), 'Kembali ke Katalog'],
+                request()->routeIs('login', 'register') => [route('catalog.index'), 'Kembali ke Katalog'],
+                request()->routeIs('password.request') => [route('login'), 'Kembali ke Masuk'],
+                request()->routeIs('register.otp.*') => [route('register'), 'Kembali ke Pendaftaran'],
+                request()->routeIs('recovery.*', 'password.update') => [route('password.request'), 'Kembali ke Pemulihan Akun'],
+                request()->routeIs('cart.index', 'wishlist.index') => [route('catalog.index'), 'Kembali ke Katalog'],
+                request()->routeIs('checkout.*') => [route('cart.index'), 'Kembali ke Keranjang'],
+                request()->routeIs('orders.index') => [route('buyer.dashboard'), 'Kembali ke Dashboard'],
+                request()->routeIs('orders.payment') => [route('orders.show', request()->route('order')), 'Kembali ke Detail Pesanan'],
+                request()->routeIs('orders.*', 'reviews.*') => [route('orders.index'), 'Kembali ke Pesanan'],
+                request()->routeIs('notifications.*', 'account.*') => [$dashboardUrl, 'Kembali ke Dashboard'],
+                request()->routeIs('admin.products.index') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
+                request()->routeIs('admin.products.*') => [route('admin.products.index'), 'Kembali ke Produk'],
+                request()->routeIs('admin.orders.index') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
+                request()->routeIs('admin.orders.*') => [route('admin.orders.index'), 'Kembali ke Pesanan'],
+                request()->routeIs('admin.buyers.*', 'admin.reports.*', 'admin.courier.*', 'admin.settings.*') => [route('admin.dashboard'), 'Kembali ke Dashboard'],
+                default => null,
+            };
+        @endphp
+        @if($backNavigation)
+            <div class="mb-5"><x-back-link :href="$backNavigation[0]" :label="$backNavigation[1]" /></div>
         @endif
         @auth
             @if(auth()->user()->isAdmin() && request()->routeIs('admin.*'))
@@ -135,9 +164,7 @@
             <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
                 <div>
                     <a href="{{ route('catalog.index') }}" class="inline-flex items-center gap-3 text-white">
-                        <span class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1 shadow-lg shadow-black/20">
-                            <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-full w-full object-contain">
-                        </span>
+                        <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="footer" class="h-14 w-14 shrink-0 object-contain drop-shadow-lg">
                         <span>
                             <span class="block font-extrabold leading-tight">{{ $storeSettings['legal_name'] }}</span>
                             <span class="block text-xs text-blue-200">Belanja kebutuhan sekolah</span>

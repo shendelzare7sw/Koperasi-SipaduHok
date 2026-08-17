@@ -16,11 +16,39 @@ class CheckoutSelectionAndMidtransTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_checkout_redirects_buyer_without_address_to_address_management(): void
+    {
+        $buyer = User::factory()->create();
+        $product = Product::factory()->create(['stock' => 10]);
+        $cartItem = CartItem::create([
+            'user_id' => $buyer->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+
+        $this->actingAs($buyer)
+            ->get(route('checkout.create', ['items' => [$cartItem->id]]))
+            ->assertRedirect(route('account.addresses.index', ['checkout_items' => [$cartItem->id]]))
+            ->assertSessionHasErrors('address');
+    }
+
     public function test_buy_now_selects_only_the_requested_product(): void
     {
         config()->set('services.payment_gateway', 'placeholder');
 
         $buyer = User::factory()->create();
+        $buyer->addresses()->create([
+            'label' => 'Rumah',
+            'recipient_name' => $buyer->name,
+            'phone' => $buyer->phone,
+            'full_address' => 'Jl. Pendidikan No. 1',
+            'village' => 'Sukamaju',
+            'district' => 'Cendekia',
+            'city' => 'Bandung',
+            'province' => 'Jawa Barat',
+            'postal_code' => '40123',
+            'is_primary' => true,
+        ]);
         $firstProduct = Product::factory()->create(['stock' => 10]);
         $secondProduct = Product::factory()->create(['stock' => 10]);
         $savedItem = CartItem::create([
@@ -49,6 +77,18 @@ class CheckoutSelectionAndMidtransTest extends TestCase
         config()->set('services.payment_gateway', 'placeholder');
 
         $buyer = User::factory()->create();
+        $address = $buyer->addresses()->create([
+            'label' => 'Rumah',
+            'recipient_name' => 'Pembeli',
+            'phone' => '08123456789',
+            'full_address' => 'Jl. Pengiriman No. 2',
+            'village' => 'Sukamaju',
+            'district' => 'Cendekia',
+            'city' => 'Bandung',
+            'province' => 'Jawa Barat',
+            'postal_code' => '40123',
+            'is_primary' => true,
+        ]);
         $selectedProduct = Product::factory()->create(['price' => 20000, 'stock' => 10]);
         $savedProduct = Product::factory()->create(['price' => 50000, 'stock' => 10]);
         $selectedItem = CartItem::create(['user_id' => $buyer->id, 'product_id' => $selectedProduct->id, 'quantity' => 2]);
@@ -56,11 +96,9 @@ class CheckoutSelectionAndMidtransTest extends TestCase
         Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);
 
         $this->actingAs($buyer)->post(route('checkout.store'), [
-            'buyer_name' => 'Pembeli',
+            'address_id' => $address->id,
             'student_name' => 'Siswa',
             'class_name' => 'VII-A',
-            'phone' => '08123456789',
-            'delivery_address' => 'Alamat pengiriman',
             'payment_method' => 'qris',
             'cart_item_ids' => [$selectedItem->id],
         ])->assertRedirect();

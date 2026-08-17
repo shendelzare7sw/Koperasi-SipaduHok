@@ -1,7 +1,6 @@
 <x-layouts.app title="Ulasan Produk - Koperasi Sipaduhok">
     <div class="mx-auto max-w-2xl">
-        <a href="{{ route('orders.show', $orderItem->order) }}" class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-secondary"><i class="fas fa-arrow-left"></i>Kembali ke pesanan</a>
-        <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pembelian terverifikasi</p>
             <h1 class="mt-2 text-2xl font-black text-slate-900">Ulas {{ $orderItem->product_name }}</h1>
             <p class="mt-2 text-sm text-slate-500">Ulasan hanya dapat diberikan untuk produk dari pesanan yang sudah selesai.</p>

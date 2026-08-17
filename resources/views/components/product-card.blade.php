@@ -1,5 +1,7 @@
 @props(['product', 'categories' => [], 'wishlisted' => false])
-@php($imagePath = $product->primaryImagePath())
+@php
+    $imagePath = $product->primaryImagePath();
+@endphp
 
 <article class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
     @auth

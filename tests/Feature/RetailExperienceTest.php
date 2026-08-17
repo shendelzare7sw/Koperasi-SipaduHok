@@ -19,6 +19,49 @@ class RetailExperienceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_buyer_can_create_update_prioritize_and_delete_detailed_addresses(): void
+    {
+        $buyer = User::factory()->create();
+        $payload = [
+            'label' => 'Rumah',
+            'recipient_name' => 'Penerima Utama',
+            'phone' => '081234567890',
+            'full_address' => 'Jl. Pendidikan No. 10, RT 02/RW 03',
+            'village' => 'Sukamaju',
+            'district' => 'Cendekia',
+            'city' => 'Bandung',
+            'province' => 'Jawa Barat',
+            'postal_code' => '40123',
+        ];
+
+        $this->actingAs($buyer)->post(route('account.addresses.store'), $payload)->assertRedirect();
+        $firstAddress = $buyer->addresses()->firstOrFail();
+        $this->assertTrue($firstAddress->is_primary);
+        $this->assertSame("Jl. Pendidikan No. 10, RT 02/RW 03\nSukamaju, Cendekia, Bandung, Jawa Barat, 40123", $firstAddress->formattedAddress());
+
+        $this->post(route('account.addresses.store'), [
+            ...$payload,
+            'label' => 'Rumah Nenek',
+            'full_address' => 'Jl. Keluarga No. 5',
+        ])->assertRedirect();
+        $secondAddress = $buyer->addresses()->where('label', 'Rumah Nenek')->firstOrFail();
+
+        $this->put(route('account.addresses.update', $secondAddress), [
+            ...$payload,
+            'label' => 'Rumah Orang Tua',
+            'city' => 'Cimahi',
+            'is_primary' => '1',
+        ])->assertRedirect();
+
+        $this->assertFalse($firstAddress->fresh()->is_primary);
+        $this->assertTrue($secondAddress->fresh()->is_primary);
+        $this->assertSame('Cimahi', $secondAddress->fresh()->city);
+
+        $this->delete(route('account.addresses.destroy', $secondAddress))->assertRedirect();
+        $this->assertDatabaseMissing('addresses', ['id' => $secondAddress->id]);
+        $this->assertTrue($firstAddress->fresh()->is_primary);
+    }
+
     public function test_saved_address_is_owned_by_buyer_and_used_at_checkout(): void
     {
         config()->set('services.payment_gateway', 'placeholder');
@@ -29,6 +72,11 @@ class RetailExperienceTest extends TestCase
             'recipient_name' => 'Penerima Tersimpan',
             'phone' => '081222222222',
             'full_address' => 'Alamat tersimpan yang resmi',
+            'village' => 'Kelurahan Sekolah',
+            'district' => 'Kecamatan Belajar',
+            'city' => 'Medan',
+            'province' => 'Sumatera Utara',
+            'postal_code' => '20111',
             'is_primary' => true,
         ]);
         $product = Product::factory()->create(['price' => 20000, 'stock' => 10]);
@@ -41,11 +89,8 @@ class RetailExperienceTest extends TestCase
 
         $this->actingAs($buyer)->post(route('checkout.store'), [
             'address_id' => $address->id,
-            'buyer_name' => 'Data yang dicoba diubah',
             'student_name' => 'Siswa Contoh',
             'class_name' => 'VIII-A',
-            'phone' => '080000000000',
-            'delivery_address' => 'Alamat yang dicoba diubah',
             'payment_method' => 'qris',
             'cart_item_ids' => [$cartItem->id],
         ])->assertRedirect();
@@ -54,7 +99,7 @@ class RetailExperienceTest extends TestCase
             'user_id' => $buyer->id,
             'buyer_name' => 'Penerima Tersimpan',
             'phone' => '081222222222',
-            'delivery_address' => 'Alamat tersimpan yang resmi',
+            'delivery_address' => "Alamat tersimpan yang resmi\nKelurahan Sekolah, Kecamatan Belajar, Medan, Sumatera Utara, 20111",
         ]);
     }
 

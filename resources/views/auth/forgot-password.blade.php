@@ -9,6 +9,5 @@
             <x-turnstile action="recovery" />
             <button class="w-full rounded-xl bg-primary px-4 py-3 font-bold text-white hover:bg-secondary"><i class="fas fa-paper-plane mr-2"></i>Kirim Kode OTP</button>
         </form>
-        <a href="{{ route('login') }}" class="mt-5 block text-center text-sm font-bold text-primary hover:text-secondary"><i class="fas fa-arrow-left mr-2"></i>Kembali ke halaman masuk</a>
     </div>
 </x-layouts.app>

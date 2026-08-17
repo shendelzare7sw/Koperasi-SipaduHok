@@ -12,8 +12,18 @@ class AddressController extends Controller
 {
     public function index(Request $request): View
     {
+        $requestedCheckoutItems = collect($request->input('checkout_items', []))
+            ->filter(fn ($id) => filter_var($id, FILTER_VALIDATE_INT) !== false)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
         return view('account.addresses', [
             'addresses' => $request->user()->addresses()->latest('is_primary')->latest()->get(),
+            'checkoutItemIds' => $request->user()->cartItems()
+                ->whereIn('id', $requestedCheckoutItems)
+                ->pluck('id')
+                ->all(),
         ]);
     }
 
@@ -40,6 +50,7 @@ class AddressController extends Controller
     public function update(Request $request, Address $address): RedirectResponse
     {
         $this->authorizeOwner($request, $address);
+        $request->merge(['_editing_address_id' => $address->id]);
         $validated = $this->validateAddress($request);
 
         DB::transaction(function () use ($request, $address, $validated) {
@@ -90,8 +101,16 @@ class AddressController extends Controller
         return $request->validate([
             'label' => ['required', 'string', 'max:50'],
             'recipient_name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+()\-\s]+$/'],
             'full_address' => ['required', 'string', 'max:1000'],
+            'village' => ['required', 'string', 'max:100'],
+            'district' => ['required', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
+            'province' => ['required', 'string', 'max:100'],
+            'postal_code' => ['required', 'string', 'regex:/^\d{5}$/'],
+        ], [
+            'phone.regex' => 'Nomor HP hanya boleh berisi angka dan simbol telepon yang umum.',
+            'postal_code.regex' => 'Kode pos harus terdiri dari lima digit angka.',
         ]);
     }
 

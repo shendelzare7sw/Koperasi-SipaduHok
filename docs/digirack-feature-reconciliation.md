@@ -9,13 +9,14 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 | Profil dan pengaturan akun | Satu halaman profil dan keamanan yang dipakai admin maupun pembeli. Role bersifat hanya-baca. |
 | Dropdown akun dan notifikasi | Dropdown avatar, bel, badge belum dibaca, pusat notifikasi, baca satu, dan baca semua. |
 | Notifikasi transaksi | Pesanan baru, pembayaran, status pengiriman, bukti tiba, penerimaan, ulasan, dan balasan ulasan. |
-| Alamat pembeli | CRUD alamat lokal tanpa data provinsi/kota eksternal dan tanpa API ongkir. Alamat utama dapat dipilih saat checkout. |
+| Alamat pembeli | CRUD alamat lengkap (penerima, telepon, jalan, kelurahan/desa, kecamatan, kota/kabupaten, provinsi, dan kode pos) yang diisi manual tanpa API wilayah/ongkir. Checkout wajib memakai alamat tersimpan dan alamat utama dipilih otomatis. |
 | Wishlist | Wishlist khusus pembeli dengan badge dan tombol hati pada katalog/detail. |
 | Galeri produk | Maksimal lima foto, preview sebelum upload, thumbnail, lightbox, dan penghapusan foto oleh admin. |
 | Ulasan produk | Hanya pembeli dengan order selesai yang dapat mengulas; admin koperasi dapat memberi balasan resmi. |
 | Filter katalog | Pencarian, kategori, rentang harga, rating, dan pengurutan harga/rating/stok. |
 | Produk terkait | Rekomendasi dari kategori yang sama pada detail produk. |
-| Reset kata sandi | Alur email reset Laravel tanpa OTP registrasi tambahan. |
+| Keamanan akun | Registrasi dan pemulihan akun memakai OTP email; login, registrasi, serta pemulihan dilindungi Cloudflare Turnstile. |
+| Navigasi halaman | Tombol kembali kontekstual tersedia pada halaman turunan, dengan logo transparan tanpa kotak pembungkus pada header dan footer. |
 | Halaman publik/legal | Tentang, bantuan, pembayaran, pengiriman, pengembalian, privasi, dan syarat ketentuan. |
 | Pengaturan identitas toko | Nama legal, email, telepon, WhatsApp, alamat, jam layanan, dan deskripsi dikelola admin. |
 | Label pengiriman | Label cetak khusus Kurir Koperasi, tanpa resi atau API ekspedisi eksternal. |
@@ -32,7 +33,6 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 | Multi-store checkout dan storefront seller | Hanya ada satu toko koperasi. |
 | Fee marketplace dan moderasi produk seller | Tidak relevan pada model satu penjual. |
 | Flash sale dan banner marketplace | Tidak termasuk kebutuhan inti saat ini; dapat ditambahkan setelah katalog operasional stabil. |
-| OTP registrasi dan role seller recovery | Autentikasi diminta tetap sederhana; pemulihan kata sandi email sudah tersedia. |
 | Pembatalan otomatis transaksi Midtrans | Membatalkan transaksi berbayar memerlukan aturan refund dan sinkronisasi gateway agar tidak menghasilkan status uang yang keliru. Saat ini pembeli diarahkan menghubungi admin sesuai kebijakan publik. |
 | Retur otomatis dan refund gateway | Memerlukan prosedur operasional serta keputusan refund koperasi; halaman kebijakan dan kontak sudah disiapkan terlebih dahulu. |
 | Auto-complete pesanan | Belum diaktifkan karena alur yang diminta mewajibkan konfirmasi internal pembeli setelah admin mengunggah bukti tiba. |

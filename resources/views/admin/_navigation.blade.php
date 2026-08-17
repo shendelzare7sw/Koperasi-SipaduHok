@@ -3,8 +3,10 @@
         <p class="text-xs font-extrabold uppercase tracking-widest text-accent-yellow">Admin Seller</p>
         <p class="mt-1 truncate font-bold">{{ auth()->user()->name }}</p>
     </div>
-    @php($activeClass = 'bg-accent-yellow text-slate-900')
-    @php($idleClass = 'text-blue-100 hover:bg-white/10 hover:text-white')
+    @php
+        $activeClass = 'bg-accent-yellow text-slate-900';
+        $idleClass = 'text-blue-100 hover:bg-white/10 hover:text-white';
+    @endphp
     <nav class="flex gap-2 overflow-x-auto lg:mt-3 lg:grid lg:gap-1" aria-label="Menu admin koperasi">
         <a href="{{ route('admin.dashboard') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.dashboard') ? $activeClass : $idleClass }}">Ringkasan</a>
         <a href="{{ route('admin.products.index') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.products.*') && ! request()->routeIs('admin.products.import.*') ? $activeClass : $idleClass }}">Produk</a>

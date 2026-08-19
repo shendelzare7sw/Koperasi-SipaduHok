@@ -1,7 +1,7 @@
-<x-layouts.app title="Masuk - Koperasi Sipaduhok">
+<x-layouts.app title="Masuk - Toko Sipaduhok">
     <div class="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 class="text-2xl font-black text-slate-900">Masuk</h1>
-        <p class="mt-1 text-sm text-slate-500">Pembeli dan admin koperasi menggunakan halaman masuk yang sama.</p>
+        <p class="mt-1 text-sm text-slate-500">Pembeli dan admin toko menggunakan halaman masuk yang sama.</p>
         <form method="POST" action="{{ route('login.store') }}" class="mt-6 space-y-4">
             @csrf
             <label class="block text-sm font-semibold">Email

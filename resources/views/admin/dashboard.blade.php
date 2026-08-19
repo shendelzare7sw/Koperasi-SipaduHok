@@ -1,6 +1,6 @@
-<x-layouts.app title="Dashboard Admin - Koperasi Sipaduhok">
+<x-layouts.app title="Dashboard Admin - Toko Sipaduhok">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div><p class="font-extrabold uppercase tracking-widest text-primary">Admin Seller</p><h1 class="mt-1 text-3xl font-black text-slate-900">Dashboard Koperasi</h1><p class="mt-1 text-slate-500">Kelola toko, pembayaran, dan pengantaran dari satu panel.</p></div>
+        <div><p class="font-extrabold uppercase tracking-widest text-primary">Admin Seller</p><h1 class="mt-1 text-3xl font-black text-slate-900">Dashboard Toko</h1><p class="mt-1 text-slate-500">Kelola produk, pembayaran, pembeli, dan pengantaran dari satu panel.</p></div>
         <a href="{{ route('admin.products.create') }}" class="rounded-xl bg-primary px-5 py-3 text-center font-black text-white transition hover:bg-secondary">+ Tambah Produk</a>
     </div>
     <a href="{{ route('admin.settings.payment.edit') }}" class="mt-6 flex flex-col gap-3 rounded-2xl border p-4 transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between {{ $paymentStatus['ready'] ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50' }}">
@@ -17,7 +17,7 @@
         <a href="{{ route('admin.reports.sales') }}" class="col-span-2 rounded-2xl bg-gradient-to-r from-primary to-secondary p-5 text-white transition hover:shadow-lg"><p class="text-sm text-blue-50">Total Penjualan Selesai</p><p class="mt-2 text-2xl font-black text-accent-yellow">Rp {{ number_format($completedRevenue, 0, ',', '.') }}</p><p class="mt-2 text-xs font-bold text-white">Buka laporan penjualan →</p></a>
     </div>
     <section class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div class="flex items-center justify-between border-b border-slate-200 p-5"><div><h2 class="font-black">Pesanan Terbaru</h2><p class="text-xs text-slate-500">Aktivitas transaksi koperasi terkini</p></div><a href="{{ route('admin.orders.index') }}" class="text-sm font-bold text-primary hover:text-secondary">Semua pesanan</a></div>
+        <div class="flex items-center justify-between border-b border-slate-200 p-5"><div><h2 class="font-black">Pesanan Terbaru</h2><p class="text-xs text-slate-500">Aktivitas transaksi toko terkini</p></div><a href="{{ route('admin.orders.index') }}" class="text-sm font-bold text-primary hover:text-secondary">Semua pesanan</a></div>
         <div class="divide-y divide-slate-100">@forelse($recentOrders as $order)<a href="{{ route('admin.orders.show', $order) }}" class="flex flex-col gap-2 p-4 hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-mono text-sm font-bold">{{ $order->invoice_number }}</p><p class="text-sm text-slate-500">{{ $order->student_name }} · {{ $order->class_name }}</p></div><div class="sm:text-right"><p class="text-sm font-bold">{{ $order->statusLabel() }}</p><p class="text-sm">Rp {{ number_format($order->total, 0, ',', '.') }}</p></div></a>@empty<p class="p-8 text-center text-slate-500">Belum ada pesanan.</p>@endforelse</div>
     </section>
 </x-layouts.app>

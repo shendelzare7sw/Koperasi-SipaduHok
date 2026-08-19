@@ -127,7 +127,7 @@ class AccountAndNotificationsTest extends TestCase
     {
         $courier = Courier::create([
             'code' => 'main',
-            'name' => 'Kurir Koperasi',
+            'name' => 'Kurir Toko',
             'fee' => 10000,
             'is_active' => true,
         ]);

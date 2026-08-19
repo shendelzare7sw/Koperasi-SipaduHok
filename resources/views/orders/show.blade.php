@@ -9,7 +9,7 @@
             <section class="rounded-2xl border border-slate-200 bg-white p-5">
                 <h2 class="font-black text-slate-900">Item Pesanan</h2>
                 <div class="mt-4 divide-y divide-slate-100">@foreach($order->items as $item)<div class="flex justify-between gap-4 py-3 text-sm"><span>{{ $item->product_name }} × {{ $item->quantity }}</span><span class="font-bold">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span></div>@endforeach</div>
-                <div class="mt-3 space-y-2 border-t border-slate-200 pt-4 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>Kurir Koperasi</span><span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div><div class="flex justify-between text-lg font-black"><span>Total</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div></div>
+                <div class="mt-3 space-y-2 border-t border-slate-200 pt-4 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>Kurir Toko</span><span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div><div class="flex justify-between text-lg font-black"><span>Total</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div></div>
             </section>
 
             @if($order->status === App\Enums\OrderStatus::Completed)
@@ -56,7 +56,7 @@
                         <button class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">Cek Status Pembayaran</button>
                     </form>
                 @elseif($order->payment_gateway === 'placeholder')
-                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">Mode konfirmasi internal: admin koperasi mengonfirmasi pembayaran dari dashboard.</p>
+                    <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">Mode konfirmasi internal: admin toko mengonfirmasi pembayaran dari dashboard.</p>
                 @endif
             </section>
             <section class="rounded-2xl border border-slate-200 bg-white p-5"><h2 class="font-black">Pengantaran</h2><dl class="mt-4 space-y-2 text-sm"><dt class="text-slate-500">Kurir</dt><dd class="font-bold">{{ $order->courier_name }}</dd><dt class="pt-2 text-slate-500">Penerima / siswa</dt><dd>{{ $order->buyer_name }} · {{ $order->student_name }} ({{ $order->class_name }})</dd><dt class="pt-2 text-slate-500">Alamat</dt><dd class="whitespace-pre-line">{{ $order->delivery_address }}</dd><dt class="pt-2 text-slate-500">Nomor HP</dt><dd>{{ $order->phone }}</dd></dl></section>

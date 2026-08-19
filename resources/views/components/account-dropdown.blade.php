@@ -15,7 +15,7 @@
             <a href="{{ route('account.profile.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-user-pen w-5 text-center" aria-hidden="true"></i>Profil Saya</a>
             <a href="{{ route('account.security.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-gear w-5 text-center" aria-hidden="true"></i>Pengaturan Akun</a>
             @if(auth()->user()->isAdmin())
-                <a href="{{ route('admin.settings.store.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-store w-5 text-center" aria-hidden="true"></i>Identitas Koperasi</a>
+                <a href="{{ route('admin.settings.store.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-store w-5 text-center" aria-hidden="true"></i>Identitas Toko</a>
             @endif
             @unless(auth()->user()->isAdmin())
                 <a href="{{ route('account.identity.edit') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-id-card w-5 text-center" aria-hidden="true"></i>Verifikasi KTP</a>
@@ -25,7 +25,7 @@
             <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold text-slate-600 transition hover:bg-blue-50 hover:text-primary"><i class="fas fa-bell w-5 text-center" aria-hidden="true"></i><span class="flex-1">Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-primary px-2 py-0.5 text-[10px] font-black text-white">{{ $unreadNotificationCount }}</span>@endif</a>
         </nav>
         <div class="border-t border-slate-100 p-2">
-            <form method="POST" action="{{ auth()->user()->isAdmin() ? route('admin.logout') : route('logout') }}" data-confirm="Anda akan keluar dari akun Koperasi Sipaduhok." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">
+            <form method="POST" action="{{ auth()->user()->isAdmin() ? route('admin.logout') : route('logout') }}" data-confirm="Anda akan keluar dari akun Toko Sipaduhok." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">
                 @csrf
                 <button class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"><i class="fas fa-arrow-right-from-bracket w-5 text-center" aria-hidden="true"></i>Keluar</button>
             </form>

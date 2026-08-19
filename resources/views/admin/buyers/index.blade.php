@@ -1,6 +1,6 @@
 <x-layouts.app title="Kelola Pembeli">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div><p class="text-sm font-extrabold uppercase tracking-widest text-primary">Pengguna Koperasi</p><h1 class="mt-1 text-3xl font-black text-slate-900">Kelola Pembeli</h1><p class="mt-1 text-slate-500">Tinjau akun, status akses, riwayat transaksi, dan verifikasi KTP pembeli.</p><p class="mt-2 text-xs font-bold text-slate-500">{{ $activeBuyerCount }} aktif <span class="mx-1">&bull;</span> {{ $inactiveBuyerCount }} nonaktif</p></div>
+        <div><p class="text-sm font-extrabold uppercase tracking-widest text-primary">Pengguna Toko</p><h1 class="mt-1 text-3xl font-black text-slate-900">Kelola Pembeli</h1><p class="mt-1 text-slate-500">Tinjau akun, status akses, riwayat transaksi, dan verifikasi KTP pembeli.</p><p class="mt-2 text-xs font-bold text-slate-500">{{ $activeBuyerCount }} aktif <span class="mx-1">&bull;</span> {{ $inactiveBuyerCount }} nonaktif</p></div>
         <a href="{{ route('admin.buyers.index', ['verification' => 'pending']) }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 font-bold text-amber-700"><i class="fas fa-id-card" aria-hidden="true"></i>{{ $pendingVerificationCount }} menunggu verifikasi</a>
     </div>
 

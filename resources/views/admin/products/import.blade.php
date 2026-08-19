@@ -4,7 +4,7 @@
             <div>
                 <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Kelola Produk</p>
                 <h1 class="mt-1 text-3xl font-black">Import Produk dari Excel</h1>
-                <p class="mt-2 max-w-2xl text-slate-500">Tambahkan banyak produk sekaligus menggunakan template resmi Koperasi Sipaduhok.</p>
+                <p class="mt-2 max-w-2xl text-slate-500">Tambahkan banyak produk sekaligus menggunakan template resmi Toko Sipaduhok.</p>
             </div>
         </div>
 

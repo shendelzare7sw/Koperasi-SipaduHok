@@ -31,7 +31,7 @@ class MidtransPaymentGateway implements PaymentGateway
                 'id' => 'shipping',
                 'price' => $order->shipping_cost,
                 'quantity' => 1,
-                'name' => Str::limit($order->courier_name ?: 'Kurir Koperasi', 50, ''),
+                'name' => Str::limit($order->courier_name ?: 'Kurir Toko', 50, ''),
             ];
         }
 

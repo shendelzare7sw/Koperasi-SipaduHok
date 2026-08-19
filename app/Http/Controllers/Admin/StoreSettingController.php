@@ -31,6 +31,6 @@ class StoreSettingController extends Controller
             StoreSetting::updateOrCreate(['key' => $key], ['value' => $value ?? '']);
         }
 
-        return back()->with('success', 'Identitas dan kontak koperasi berhasil diperbarui.');
+        return back()->with('success', 'Identitas dan kontak toko berhasil diperbarui.');
     }
 }

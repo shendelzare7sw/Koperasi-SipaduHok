@@ -1,4 +1,4 @@
-<x-layouts.app title="{{ $product->name }} - Koperasi Sipaduhok">
+<x-layouts.app title="{{ $product->name }} - Toko Sipaduhok">
     <div class="grid gap-8 lg:grid-cols-2">
         @php
             $gallery = $product->images->pluck('image_path');
@@ -85,7 +85,7 @@
                 <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                     <div class="flex items-start justify-between gap-3"><div><p class="font-extrabold text-slate-900">{{ $review->buyer->name }}</p><p class="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-secondary"><i class="fas fa-circle-check mr-1"></i>Pembelian terverifikasi</p></div><div class="text-xs text-accent-yellow">@for($star = 1; $star <= 5; $star++)<i class="{{ $star <= $review->rating ? 'fas' : 'far' }} fa-star"></i>@endfor</div></div>
                     <p class="mt-4 whitespace-pre-line text-sm leading-6 text-slate-600">{{ $review->comment ?: 'Pembeli memberikan penilaian tanpa komentar.' }}</p>
-                    @if($review->admin_reply)<div class="mt-4 rounded-xl border-l-4 border-primary bg-white p-4"><p class="text-xs font-extrabold uppercase tracking-wide text-primary">Balasan Koperasi</p><p class="mt-1 text-sm leading-6 text-slate-600">{{ $review->admin_reply }}</p></div>@endif
+                    @if($review->admin_reply)<div class="mt-4 rounded-xl border-l-4 border-primary bg-white p-4"><p class="text-xs font-extrabold uppercase tracking-wide text-primary">Balasan Toko</p><p class="mt-1 text-sm leading-6 text-slate-600">{{ $review->admin_reply }}</p></div>@endif
                     <time class="mt-3 block text-xs text-slate-400">{{ $review->created_at->translatedFormat('d F Y') }}</time>
                 </article>
             @empty

@@ -1,4 +1,4 @@
-<x-layouts.app title="Daftar Pembeli - Koperasi Sipaduhok">
+<x-layouts.app title="Daftar Pembeli - Toko Sipaduhok">
     <div class="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 class="text-2xl font-black text-slate-900">Daftar Pembeli</h1>
         <p class="mt-1 text-sm text-slate-500">Buat satu akun pembeli. Kode OTP akan dikirim ke email untuk memverifikasi pendaftaran.</p>

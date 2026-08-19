@@ -17,10 +17,17 @@ class CatalogFilterExperienceTest extends TestCase
         $this->get(route('catalog.index'))
             ->assertOk()
             ->assertSee('sm:py-7', false)
+            ->assertSee('Toko Kebutuhan Sekolah Online')
+            ->assertSee('Pembayaran aman')
+            ->assertSee('Invoice setiap transaksi')
+            ->assertSee('Dukungan pelanggan')
+            ->assertSee('toko.sipaduhok.id')
             ->assertSee('role="search"', false)
             ->assertSee('fa-book-open', false)
             ->assertSee('fa-pen-ruler', false)
             ->assertSee('fa-shirt', false)
+            ->assertDontSee('Koperasi', false)
+            ->assertDontSee('app.sipaduhok.id', false)
             ->assertDontSee('data-mobile-filter-toggle', false);
     }
 

@@ -21,7 +21,7 @@
     </div>
     <main class="mx-auto max-w-4xl rounded-2xl bg-white p-6 shadow-sm sm:p-10 print:max-w-none print:rounded-none print:p-0 print:shadow-none">
         <header class="flex flex-col gap-5 border-b-4 border-primary pb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-center gap-3"><img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-20 w-20 object-contain"><div><h1 class="text-xl font-black">Koperasi Sipaduhok</h1><p class="text-sm text-slate-500">koperasi.sipaduhok.id</p></div></div>
+            <div class="flex items-center gap-3"><img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="h-20 w-20 object-contain"><div><h1 class="text-xl font-black">Toko Sipaduhok</h1><p class="text-sm text-slate-500">toko.sipaduhok.id</p></div></div>
             <div class="sm:text-right"><p class="text-xs font-bold uppercase tracking-widest text-primary">Invoice</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p><p class="text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} WIB</p></div>
         </header>
 
@@ -37,10 +37,10 @@
             </table>
         </div>
 
-        <section class="mt-6 ml-auto max-w-sm space-y-2 text-sm"><div class="flex justify-between"><span>Subtotal Produk</span><span>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>Tarif Kurir Koperasi</span><span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div><div class="flex justify-between border-t-2 border-slate-200 pt-3 text-lg font-black"><span>Total Tagihan</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div></section>
+        <section class="mt-6 ml-auto max-w-sm space-y-2 text-sm"><div class="flex justify-between"><span>Subtotal Produk</span><span>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>Tarif Kurir Toko</span><span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div><div class="flex justify-between border-t-2 border-slate-200 pt-3 text-lg font-black"><span>Total Tagihan</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div></section>
 
         <section class="mt-8 flex flex-col gap-3 rounded-xl border border-slate-200 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"><div><p class="text-slate-500">Metode Pembayaran</p><p class="font-bold">{{ $order->payment_method->label() }}</p></div><div><p class="text-slate-500">Status Pembayaran</p><p class="font-black">{{ $paymentLabel }}</p></div><div><p class="text-slate-500">Status Pesanan</p><p class="font-bold">{{ $order->statusLabel() }}</p></div></section>
-        <p class="mt-8 text-center text-xs text-slate-400">Invoice dibuat otomatis oleh sistem Koperasi Sipaduhok. Simpan dokumen ini sebagai bukti transaksi.</p>
+        <p class="mt-8 text-center text-xs text-slate-400">Invoice dibuat otomatis oleh sistem Toko Sipaduhok. Simpan dokumen ini sebagai bukti transaksi.</p>
     </main>
 </body>
 </html>

@@ -20,17 +20,17 @@ class DatabaseSeeder extends Seeder
     {
         Courier::updateOrCreate(
             ['code' => 'main'],
-            ['name' => 'Kurir Koperasi', 'fee' => 10000, 'estimate' => 'Diantar pada hari sekolah', 'is_active' => true],
+            ['name' => 'Kurir Toko', 'fee' => 10000, 'estimate' => 'Diantar pada hari kerja', 'is_active' => true],
         );
 
-        $adminEmail = env('ADMIN_EMAIL', app()->environment(['local', 'testing']) ? 'admin@koperasi.test' : null);
+        $adminEmail = env('ADMIN_EMAIL', app()->environment(['local', 'testing']) ? 'admin@toko.test' : null);
         $adminPassword = env('ADMIN_PASSWORD', app()->environment(['local', 'testing']) ? 'password' : null);
 
         if ($adminEmail && $adminPassword) {
             User::updateOrCreate(
                 ['email' => $adminEmail],
                 [
-                    'name' => 'Admin Koperasi',
+                    'name' => 'Admin Toko',
                     'phone' => '080000000000',
                     'role' => UserRole::Admin,
                     'password' => $adminPassword,
@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
 
         if (app()->environment(['local', 'testing'])) {
             User::updateOrCreate(
-                ['email' => 'pembeli@koperasi.test'],
+                ['email' => 'pembeli@toko.test'],
                 [
                     'name' => 'Pembeli Demo',
                     'phone' => '081234567890',
@@ -62,7 +62,7 @@ class DatabaseSeeder extends Seeder
                 Product::updateOrCreate(
                     ['slug' => $slug],
                     compact('name', 'category', 'price', 'stock') + [
-                        'description' => "Produk resmi Koperasi Sipaduhok: {$name}.",
+                        'description' => "Produk resmi Toko Sipaduhok: {$name}.",
                         'is_active' => true,
                     ],
                 );

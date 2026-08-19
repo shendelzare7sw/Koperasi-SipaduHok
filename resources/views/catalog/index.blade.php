@@ -1,4 +1,4 @@
-<x-layouts.app title="Katalog - Koperasi Sipaduhok">
+<x-layouts.app title="Katalog - Toko Sipaduhok">
     @php
         $categoryIcons = [
             'buku' => 'fa-book-open',
@@ -19,9 +19,14 @@
 
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-secondary px-6 py-6 text-white shadow-lg shadow-primary/15 sm:px-10 sm:py-7">
         <div class="pointer-events-none absolute -right-14 -top-24 h-48 w-48 rounded-full bg-accent-yellow/20 blur-2xl"></div>
-        <p class="relative text-xs font-bold uppercase tracking-widest text-accent-yellow">Toko Koperasi Sekolah</p>
-        <h1 class="relative mt-2 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">Buku, alat tulis, dan atribut sekolah dalam satu katalog.</h1>
-        <p class="relative mt-2 max-w-2xl text-sm text-blue-50 sm:text-base">Belanja kebutuhan sekolah secara praktis dan diantar oleh Kurir Koperasi.</p>
+        <p class="relative text-xs font-bold uppercase tracking-widest text-accent-yellow">Toko Kebutuhan Sekolah Online</p>
+        <h1 class="relative mt-2 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">Buku, alat tulis, dan kebutuhan sekolah dalam satu tempat.</h1>
+        <p class="relative mt-2 max-w-2xl text-sm text-blue-50 sm:text-base">Belanja praktis dengan pembayaran digital, invoice elektronik, dan pengantaran langsung oleh Kurir Toko.</p>
+        <div class="relative mt-4 flex flex-wrap gap-2 text-[11px] font-bold text-white sm:text-xs">
+            <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-shield-halved text-emerald-200" aria-hidden="true"></i>Pembayaran aman</span>
+            <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-file-invoice text-accent-yellow" aria-hidden="true"></i>Invoice setiap transaksi</span>
+            <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-headset text-blue-100" aria-hidden="true"></i>Dukungan pelanggan</span>
+        </div>
     </section>
 
     <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
@@ -97,7 +102,7 @@
         </section>
     @else
         <section class="mt-8">
-            <div class="flex items-end justify-between gap-4"><div><p class="text-xs font-black uppercase tracking-widest text-primary">Pilihan terbaru</p><h2 class="mt-1 text-2xl font-black text-slate-900">Produk Koperasi</h2></div><p class="hidden text-sm text-slate-500 sm:block">Gunakan pencarian atau kategori untuk membuka filter lengkap.</p></div>
+            <div class="flex items-end justify-between gap-4"><div><p class="text-xs font-black uppercase tracking-widest text-primary">Pilihan terbaru</p><h2 class="mt-1 text-2xl font-black text-slate-900">Produk Toko</h2></div><p class="hidden text-sm text-slate-500 sm:block">Gunakan pencarian atau kategori untuk membuka filter lengkap.</p></div>
             <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 @forelse($products as $product)
                     <x-product-card :product="$product" :categories="$categories" :wishlisted="in_array($product->id, $wishlistIds, true)" />

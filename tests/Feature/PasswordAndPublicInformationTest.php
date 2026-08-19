@@ -70,7 +70,7 @@ class PasswordAndPublicInformationTest extends TestCase
     public function test_public_information_and_legal_pages_are_available(): void
     {
         $pages = [
-            'pages.about' => 'Tentang Koperasi',
+            'pages.about' => 'Tentang Toko',
             'pages.help' => 'Pusat Bantuan',
             'pages.payment' => 'Cara Pembayaran',
             'pages.shipping' => 'Kebijakan Pengiriman',
@@ -80,8 +80,16 @@ class PasswordAndPublicInformationTest extends TestCase
         ];
 
         foreach ($pages as $route => $heading) {
-            $this->get(route($route))->assertOk()->assertSee($heading);
+            $this->get(route($route))
+                ->assertOk()
+                ->assertSee($heading)
+                ->assertDontSee('Koperasi', false)
+                ->assertDontSee('app.sipaduhok.id', false);
         }
+
+        $this->get('/tentang-toko')
+            ->assertOk()
+            ->assertSee('Toko kebutuhan sekolah tepercaya');
     }
 
     public function test_admin_can_update_public_store_identity(): void
@@ -89,7 +97,7 @@ class PasswordAndPublicInformationTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)->put(route('admin.settings.store.update'), [
-            'legal_name' => 'Koperasi Sekolah Sipaduhok',
+            'legal_name' => 'Toko Sipaduhok Mandiri',
             'support_email' => 'support@example.test',
             'phone' => '021000000',
             'whatsapp' => '081200000000',
@@ -100,9 +108,9 @@ class PasswordAndPublicInformationTest extends TestCase
 
         $this->assertDatabaseHas('store_settings', [
             'key' => 'legal_name',
-            'value' => 'Koperasi Sekolah Sipaduhok',
+            'value' => 'Toko Sipaduhok Mandiri',
         ]);
-        $this->get(route('pages.about'))->assertSee('Koperasi Sekolah Sipaduhok');
+        $this->get(route('pages.about'))->assertSee('Toko Sipaduhok Mandiri');
     }
 
     public function test_application_favicon_assets_exist(): void

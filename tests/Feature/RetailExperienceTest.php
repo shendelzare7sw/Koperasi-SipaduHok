@@ -81,7 +81,7 @@ class RetailExperienceTest extends TestCase
         ]);
         $product = Product::factory()->create(['price' => 20000, 'stock' => 10]);
         $cartItem = CartItem::create(['user_id' => $buyer->id, 'product_id' => $product->id, 'quantity' => 1]);
-        Courier::create(['code' => 'main', 'name' => 'Kurir Koperasi', 'fee' => 10000, 'is_active' => true]);
+        Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);
 
         $this->actingAs($otherBuyer)
             ->delete(route('account.addresses.destroy', $address))
@@ -148,7 +148,7 @@ class RetailExperienceTest extends TestCase
 
     public function test_product_images_use_same_origin_storage_urls_instead_of_app_url(): void
     {
-        config()->set('app.url', 'http://koperasi-sipaduhok.test');
+        config()->set('app.url', 'http://toko-sipaduhok.test');
         $product = Product::factory()->create([
             'name' => 'Produk URL Storage',
             'slug' => 'produk-url-storage',
@@ -161,12 +161,12 @@ class RetailExperienceTest extends TestCase
         $this->get(route('catalog.index'))
             ->assertOk()
             ->assertSee('src="/storage/products/contoh.webp"', false)
-            ->assertDontSee('http://koperasi-sipaduhok.test/storage/products/contoh.webp', false);
+            ->assertDontSee('http://toko-sipaduhok.test/storage/products/contoh.webp', false);
 
         $this->get(route('catalog.show', $product))
             ->assertOk()
             ->assertSee('\/storage\/products\/contoh.webp', false)
-            ->assertDontSee('http://koperasi-sipaduhok.test/storage/products/contoh.webp', false);
+            ->assertDontSee('http://toko-sipaduhok.test/storage/products/contoh.webp', false);
     }
 
     public function test_completed_order_allows_verified_review_and_admin_reply(): void
@@ -208,7 +208,7 @@ class RetailExperienceTest extends TestCase
 
     private function createCompletedOrder(User $buyer): Order
     {
-        $courier = Courier::create(['code' => 'main', 'name' => 'Kurir Koperasi', 'fee' => 10000, 'is_active' => true]);
+        $courier = Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);
 
         return Order::create([
             'invoice_number' => 'KSP-REVIEW-000001',

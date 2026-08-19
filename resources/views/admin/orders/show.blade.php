@@ -11,9 +11,9 @@
                         @foreach($order->items->whereNotNull('review') as $item)
                             <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
                                 <div class="flex items-start justify-between gap-3"><div><p class="font-bold text-slate-900">{{ $item->product_name }}</p><p class="mt-1 text-sm text-slate-600">{{ $item->review->comment ?: 'Pembeli memberikan penilaian tanpa komentar.' }}</p></div><span class="whitespace-nowrap text-xs text-accent-yellow">@for($star = 1; $star <= 5; $star++)<i class="{{ $star <= $item->review->rating ? 'fas' : 'far' }} fa-star"></i>@endfor</span></div>
-                                <form method="POST" action="{{ route('admin.reviews.reply', $item->review) }}" class="mt-4" data-confirm="Balasan koperasi akan tampil secara publik pada detail produk." data-confirm-title="Simpan balasan ulasan?" data-confirm-button="Ya, simpan balasan">
+                                <form method="POST" action="{{ route('admin.reviews.reply', $item->review) }}" class="mt-4" data-confirm="Balasan toko akan tampil secara publik pada detail produk." data-confirm-title="Simpan balasan ulasan?" data-confirm-button="Ya, simpan balasan">
                                     @csrf
-                                    <textarea name="admin_reply" rows="3" required placeholder="Tulis balasan resmi koperasi" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm">{{ $item->review->admin_reply }}</textarea>
+                                    <textarea name="admin_reply" rows="3" required placeholder="Tulis balasan resmi toko" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm">{{ $item->review->admin_reply }}</textarea>
                                     <button class="mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-secondary">{{ $item->review->admin_reply ? 'Perbarui Balasan' : 'Balas Ulasan' }}</button>
                                 </form>
                             </article>

@@ -20,7 +20,7 @@
             </section>
         @endif
 
-        <form method="POST" action="{{ route('admin.products.update', $product) }}" enctype="multipart/form-data" class="mt-6 rounded-2xl border border-slate-200 bg-white p-6" data-confirm="Perubahan produk akan tampil pada katalog koperasi." data-confirm-title="Simpan perubahan produk?" data-confirm-button="Ya, simpan">
+        <form method="POST" action="{{ route('admin.products.update', $product) }}" enctype="multipart/form-data" class="mt-6 rounded-2xl border border-slate-200 bg-white p-6" data-confirm="Perubahan produk akan tampil pada katalog toko." data-confirm-title="Simpan perubahan produk?" data-confirm-button="Ya, simpan">
             @include('admin.products._form')
         </form>
     </div>

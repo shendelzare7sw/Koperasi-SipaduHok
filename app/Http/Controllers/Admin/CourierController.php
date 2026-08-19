@@ -31,14 +31,14 @@ class CourierController extends Controller
 
         $this->mainCourier()->update([...$validated, 'is_active' => $request->boolean('is_active')]);
 
-        return back()->with('success', 'Pengaturan satu-satunya Kurir Koperasi berhasil diperbarui.');
+        return back()->with('success', 'Pengaturan Kurir Toko berhasil diperbarui.');
     }
 
     private function mainCourier(): Courier
     {
         return Courier::firstOrCreate(
             ['code' => 'main'],
-            ['name' => 'Kurir Koperasi', 'fee' => 0, 'estimate' => 'Diantar pada hari sekolah', 'is_active' => true],
+            ['name' => 'Kurir Toko', 'fee' => 0, 'estimate' => 'Diantar pada hari kerja', 'is_active' => true],
         );
     }
 }

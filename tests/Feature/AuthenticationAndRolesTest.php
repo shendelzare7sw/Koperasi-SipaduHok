@@ -121,7 +121,7 @@ class AuthenticationAndRolesTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
 
-        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Dashboard Koperasi');
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()->assertSee('Dashboard Toko');
         $this->actingAs($admin)->get(route('admin.buyers.index'))->assertOk()->assertSee('Akun Pembeli');
         $this->actingAs($admin)->get(route('admin.reports.sales'))->assertOk()->assertSee('Laporan Penjualan');
     }

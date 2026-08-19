@@ -1,4 +1,4 @@
-<x-layouts.app title="Dashboard Pembeli - Koperasi Sipaduhok">
+<x-layouts.app title="Dashboard Pembeli - Toko Sipaduhok">
     @php
         $identityStatus = $identityVerification?->status ?? 'not_submitted';
         $identityVerified = $identityStatus === App\Models\IdentityVerification::STATUS_VERIFIED;
@@ -19,7 +19,7 @@
 
     @unless($identityVerified)
         <a href="{{ route('account.identity.edit') }}" class="mt-5 flex flex-col gap-3 rounded-2xl border p-4 transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between {{ $identityStatus === 'rejected' ? 'border-red-200 bg-red-50' : 'border-amber-200 bg-amber-50' }}">
-            <span class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl {{ $identityStatus === 'rejected' ? 'bg-red-600' : 'bg-amber-500' }} text-white"><i class="fas {{ $identityStatus === 'pending' ? 'fa-clock' : ($identityStatus === 'rejected' ? 'fa-triangle-exclamation' : 'fa-id-card') }}" aria-hidden="true"></i></span><span><strong class="block text-slate-900">{{ $identityStatus === 'pending' ? 'KTP sedang ditinjau admin' : ($identityStatus === 'rejected' ? 'Verifikasi KTP perlu diperbaiki' : 'Verifikasi KTP diperlukan') }}</strong><span class="mt-1 block text-xs leading-5 text-slate-600">Checkout baru dapat digunakan setelah dokumen identitas disetujui admin koperasi.</span></span></span>
+            <span class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl {{ $identityStatus === 'rejected' ? 'bg-red-600' : 'bg-amber-500' }} text-white"><i class="fas {{ $identityStatus === 'pending' ? 'fa-clock' : ($identityStatus === 'rejected' ? 'fa-triangle-exclamation' : 'fa-id-card') }}" aria-hidden="true"></i></span><span><strong class="block text-slate-900">{{ $identityStatus === 'pending' ? 'KTP sedang ditinjau admin' : ($identityStatus === 'rejected' ? 'Verifikasi KTP perlu diperbaiki' : 'Verifikasi KTP diperlukan') }}</strong><span class="mt-1 block text-xs leading-5 text-slate-600">Checkout baru dapat digunakan setelah dokumen identitas disetujui admin toko.</span></span></span>
             <span class="shrink-0 text-sm font-extrabold text-primary">Buka verifikasi <i class="fas fa-arrow-right ml-1" aria-hidden="true"></i></span>
         </a>
     @endunless
@@ -46,14 +46,14 @@
                 @forelse($recentOrders as $order)
                     <a href="{{ route('orders.show', $order) }}" class="flex flex-col gap-3 p-5 transition hover:bg-blue-50/60 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-mono text-sm font-bold text-primary">{{ $order->invoice_number }}</p><p class="mt-1 text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} · {{ $order->items->sum('quantity') }} item</p></div><div class="sm:text-right"><span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-primary">{{ $order->statusLabel() }}</span><p class="mt-2 font-black text-slate-900">Rp {{ number_format($order->total, 0, ',', '.') }}</p></div></a>
                 @empty
-                    <div class="p-8 text-center"><i class="fas fa-bag-shopping text-3xl text-slate-300" aria-hidden="true"></i><p class="mt-3 text-sm text-slate-500">Belum ada pesanan. Mulai dari katalog koperasi.</p></div>
+                    <div class="p-8 text-center"><i class="fas fa-bag-shopping text-3xl text-slate-300" aria-hidden="true"></i><p class="mt-3 text-sm text-slate-500">Belum ada pesanan. Mulai dari katalog toko.</p></div>
                 @endforelse
             </div>
         </section>
 
         <aside class="h-fit rounded-2xl border border-green-100 bg-green-50 p-5">
             <div class="grid h-11 w-11 place-items-center rounded-xl bg-secondary text-white"><i class="fas fa-truck" aria-hidden="true"></i></div>
-            <h2 class="mt-4 font-black text-slate-900">Kurir Koperasi</h2>
+            <h2 class="mt-4 font-black text-slate-900">Kurir Toko</h2>
             <p class="mt-2 text-sm leading-6 text-slate-600">Semua pesanan dikirim oleh kurir toko. Bukti paket tiba diunggah admin sebelum Anda mengonfirmasi penerimaan.</p>
             <a href="{{ route('orders.index') }}" class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-secondary">Pantau pesanan <i class="fas fa-arrow-right text-xs" aria-hidden="true"></i></a>
         </aside>

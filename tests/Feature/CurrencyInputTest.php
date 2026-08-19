@@ -42,14 +42,14 @@ class CurrencyInputTest extends TestCase
         $admin = User::factory()->admin()->create();
         Courier::create([
             'code' => 'main',
-            'name' => 'Kurir Koperasi',
+            'name' => 'Kurir Toko',
             'fee' => 0,
             'estimate' => '1 hari sekolah',
             'is_active' => true,
         ]);
 
         $this->actingAs($admin)->put(route('admin.courier.update'), [
-            'name' => 'Kurir Koperasi',
+            'name' => 'Kurir Toko',
             'fee' => '12.500',
             'estimate' => '1 hari sekolah',
             'is_active' => '1',

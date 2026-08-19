@@ -24,7 +24,7 @@ class OrderLifecycleTest extends TestCase
         $buyer = User::factory()->identityVerified()->create();
         $address = $buyer->addresses()->create([
             'label' => 'Rumah',
-            'recipient_name' => 'Pembeli Koperasi',
+            'recipient_name' => 'Pembeli Toko',
             'phone' => '081234567890',
             'full_address' => 'Jl. Sekolah No. 1',
             'village' => 'Kelurahan Belajar',
@@ -38,7 +38,7 @@ class OrderLifecycleTest extends TestCase
         $product = Product::factory()->create(['name' => 'Buku Matematika', 'price' => 50000, 'stock' => 10]);
         Courier::create([
             'code' => 'main',
-            'name' => 'Kurir Koperasi',
+            'name' => 'Kurir Toko',
             'fee' => 12000,
             'estimate' => '1 hari sekolah',
             'is_active' => true,
@@ -57,7 +57,7 @@ class OrderLifecycleTest extends TestCase
         $order = Order::firstOrFail();
         $checkout->assertRedirect(route('orders.show', $order));
         $this->assertSame(112000, $order->total);
-        $this->assertSame('Kurir Koperasi', $order->courier_name);
+        $this->assertSame('Kurir Toko', $order->courier_name);
         $this->assertStringContainsString('Kelurahan Belajar', $order->delivery_address);
         $this->assertSame(OrderStatus::PendingPayment, $order->status);
         $this->assertSame(PaymentStatus::Pending, $order->payment_status);
@@ -106,7 +106,7 @@ class OrderLifecycleTest extends TestCase
     {
         $owner = User::factory()->create();
         $otherBuyer = User::factory()->create();
-        $courier = Courier::create(['code' => 'main', 'name' => 'Kurir Koperasi', 'fee' => 10000, 'is_active' => true]);
+        $courier = Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);
         $order = Order::create([
             'invoice_number' => 'KSP-TEST-000001',
             'user_id' => $owner->id,

@@ -1,4 +1,4 @@
-<x-layouts.app title="Keamanan Akun - Koperasi Sipaduhok">
+<x-layouts.app title="Keamanan Akun - Toko Sipaduhok">
     <div class="mx-auto max-w-4xl">
         <div class="mb-6">
             <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pengaturan akun</p>

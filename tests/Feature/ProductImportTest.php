@@ -37,7 +37,7 @@ class ProductImportTest extends TestCase
 
         $response->assertOk()
             ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            ->assertDownload('template-import-produk-koperasi-sipaduhok.xlsx');
+            ->assertDownload('template-import-produk-toko-sipaduhok.xlsx');
 
         $path = tempnam(sys_get_temp_dir(), 'template-product-').'.xlsx';
         file_put_contents($path, $response->streamedContent());
@@ -139,7 +139,7 @@ class ProductImportTest extends TestCase
 
         return new UploadedFile(
             $path,
-            'produk-koperasi.xlsx',
+            'produk-toko.xlsx',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             null,
             true

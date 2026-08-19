@@ -1,4 +1,4 @@
-<x-layouts.app title="Verifikasi Pendaftaran - Koperasi Sipaduhok">
+<x-layouts.app title="Verifikasi Pendaftaran - Toko Sipaduhok">
     <div class="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <span class="grid h-12 w-12 place-items-center rounded-xl bg-blue-50 text-xl text-primary"><i class="fas fa-envelope-circle-check"></i></span>
         <h1 class="mt-5 text-2xl font-black text-slate-900">Verifikasi Pendaftaran</h1>

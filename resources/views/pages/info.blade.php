@@ -1,4 +1,4 @@
-<x-layouts.app :title="$title.' - Koperasi Sipaduhok'">
+<x-layouts.app :title="$title.' - Toko Sipaduhok'">
     <div class="mx-auto max-w-5xl">
         <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-secondary px-6 py-10 text-white shadow-xl shadow-primary/15 sm:px-10">
             <div class="pointer-events-none absolute -right-14 -top-20 h-56 w-56 rounded-full bg-accent-yellow/20 blur-2xl"></div>
@@ -28,7 +28,7 @@
                     <div><dt class="text-slate-500">Jam layanan</dt><dd class="mt-1 font-bold">{{ $settings['operating_hours'] }}</dd></div>
                     <div><dt class="text-slate-500">Alamat</dt><dd class="mt-1 whitespace-pre-line leading-6">{{ $settings['address'] }}</dd></div>
                 </dl>
-                <a href="mailto:{{ $settings['support_email'] }}" class="mt-5 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-secondary"><i class="fas fa-envelope"></i>Hubungi Koperasi</a>
+                <a href="mailto:{{ $settings['support_email'] }}" class="mt-5 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-secondary"><i class="fas fa-envelope"></i>Hubungi Toko</a>
             </aside>
         </div>
     </div>

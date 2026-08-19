@@ -157,7 +157,7 @@ class CheckoutController extends Controller
 
             $courier = Courier::query()->where('code', 'main')->where('is_active', true)->lockForUpdate()->first();
             if (! $courier) {
-                throw ValidationException::withMessages(['courier' => 'Kurir koperasi sedang tidak tersedia.']);
+                throw ValidationException::withMessages(['courier' => 'Kurir toko sedang tidak tersedia.']);
             }
 
             $shippingCost = $courier->fee;

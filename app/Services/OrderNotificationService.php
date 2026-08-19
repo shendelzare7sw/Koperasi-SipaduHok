@@ -29,7 +29,7 @@ class OrderNotificationService
 
     public function paymentConfirmed(Order $order, bool $automatic = false): void
     {
-        $source = $automatic ? 'Midtrans' : 'admin koperasi';
+        $source = $automatic ? 'Midtrans' : 'admin toko';
         $this->notifyBuyer(
             $order,
             'Pembayaran diterima',
@@ -62,7 +62,7 @@ class OrderNotificationService
         [$title, $message, $icon] = match ($order->status) {
             OrderStatus::Ready => [
                 'Pesanan siap dikirim',
-                "Pesanan {$order->invoice_number} sudah disiapkan oleh koperasi.",
+                "Pesanan {$order->invoice_number} sudah disiapkan oleh toko.",
                 'fa-box',
             ],
             OrderStatus::OutForDelivery => [
@@ -109,7 +109,7 @@ class OrderNotificationService
     {
         $this->notifyBuyer(
             $order,
-            'Ulasan dibalas koperasi',
+            'Ulasan dibalas toko',
             "Admin membalas ulasan Anda untuk {$productName}.",
             'fa-reply',
         );

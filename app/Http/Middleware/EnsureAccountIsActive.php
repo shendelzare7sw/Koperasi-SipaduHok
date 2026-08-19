@@ -20,7 +20,7 @@ class EnsureAccountIsActive
             $request->session()->regenerateToken();
 
             return redirect()->route('login')->withErrors([
-                'email' => 'Akun Anda sedang dinonaktifkan. Hubungi admin Koperasi Sipaduhok.',
+                'email' => 'Akun Anda sedang dinonaktifkan. Hubungi admin Toko Sipaduhok.',
             ]);
         }
 

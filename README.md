@@ -1,8 +1,8 @@
-# Koperasi-SipaduHok
+# Toko Sipaduhok
 
-Toko online koperasi sekolah untuk buku, alat tulis, dan atribut sekolah. Project ini berdiri sendiri dari aplikasi SPP Sipaduhok: repository, database, session, akun, order, dan kredensial payment gateway tidak dibagi dengan `app.sipaduhok.id`.
+Toko online mandiri untuk buku, alat tulis, atribut sekolah, dan kebutuhan belajar. Seluruh katalog, akun, pesanan, pembayaran, invoice, dan pengiriman dikelola langsung oleh Toko Sipaduhok.
 
-Target produksi: `https://koperasi.sipaduhok.id`.
+Target produksi: `https://toko.sipaduhok.id`.
 
 ## Stack
 
@@ -14,7 +14,7 @@ Target produksi: `https://koperasi.sipaduhok.id`.
 
 ## Role akun
 
-- `admin`: seller/pengelola Koperasi Sipaduhok
+- `admin`: seller/pengelola Toko Sipaduhok
 - `pembeli`: akses dashboard, katalog, wishlist, alamat tersimpan, cart, checkout, riwayat, invoice, ulasan, dan konfirmasi penerimaan
 
 Registrasi publik selalu membuat akun `pembeli`, tetapi data user baru disimpan setelah kode OTP email berhasil diverifikasi. Akun admin dibuat melalui seeder/environment.
@@ -31,12 +31,12 @@ Sebelum checkout, pembeli wajib mengirim foto KTP dan menunggu persetujuan admin
 - Respons awal pemulihan dibuat generik agar tidak membocorkan apakah email atau nomor HP terdaftar.
 - Session database dienkripsi pada konfigurasi contoh dan seluruh session login lama dicabut setelah kata sandi dipulihkan.
 
-Untuk production, buat widget Turnstile di Cloudflare dengan hostname `koperasi.sipaduhok.id`, kemudian isi tanpa tanda kutip tambahan:
+Untuk production, buat widget Turnstile di Cloudflare dengan hostname `toko.sipaduhok.id`, kemudian isi tanpa tanda kutip tambahan:
 
 ```dotenv
 TURNSTILE_SITE_KEY=site-key-dari-cloudflare
 TURNSTILE_SECRET_KEY=secret-key-dari-cloudflare
-TURNSTILE_HOSTNAME=koperasi.sipaduhok.id
+TURNSTILE_HOSTNAME=toko.sipaduhok.id
 SESSION_ENCRYPT=true
 ```
 
@@ -46,7 +46,7 @@ OTP memerlukan email sungguhan di production. Ubah `MAIL_MAILER=log` ke SMTP/pro
 
 ## Pengiriman
 
-Sistem hanya memiliki satu Kurir Koperasi. Admin mengatur nama, tarif flat, estimasi, serta status aktifnya. Checkout otomatis menggunakan kurir tersebut dan menyimpan nama/tarif sebagai snapshot pada order.
+Sistem hanya memiliki satu Kurir Toko. Admin mengatur nama, tarif flat, estimasi, serta status aktifnya. Checkout otomatis menggunakan kurir tersebut dan menyimpan nama/tarif sebagai snapshot pada order.
 
 Alur status:
 
@@ -69,9 +69,9 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 - Ulasan hanya untuk pembelian yang selesai; admin dapat memberi balasan resmi
 - Filter katalog berdasarkan kategori, harga, rating, dan urutan
 - Import produk massal melalui template Excel dengan contoh, validasi per baris, dan dukungan kategori tambahan `Lainnya`
-- Label pengiriman cetak untuk Kurir Koperasi
+- Label pengiriman cetak untuk Kurir Toko
 - Halaman tentang, bantuan, pembayaran, pengiriman, pengembalian, privasi, dan syarat ketentuan
-- Identitas/kontak publik koperasi dapat diatur melalui panel admin
+- Identitas/kontak publik toko dapat diatur melalui panel admin
 - Arsip produk dengan pemulihan dan hapus permanen; hapus permanen sekaligus membersihkan semua file galeri produk
 - Kelola pembeli dengan filter status akun/KTP, pemeriksaan KTP, riwayat pesanan, serta aktif/nonaktif akun
 - Panel konfigurasi Midtrans dengan penyimpanan key terenkripsi dan konfirmasi kata sandi admin
@@ -81,10 +81,10 @@ Hasil audit serta keputusan adaptasi fitur dari DigiRack dicatat di [`docs/digir
 
 ## Instalasi development (PowerShell)
 
-Project ini sudah dibuat di `C:\laragon\www\koperasi-sipaduhok`. Untuk instalasi ulang dari hasil repository:
+Untuk instalasi lokal di Laragon, gunakan direktori `C:\laragon\www\toko-sipaduhok`:
 
 ```powershell
-cd C:\laragon\www\koperasi-sipaduhok
+cd C:\laragon\www\toko-sipaduhok
 composer install
 Copy-Item .env.example .env
 php artisan key:generate
@@ -95,14 +95,14 @@ npm run build
 composer run dev
 ```
 
-Pada Laragon, reload web server bila virtual host belum terdeteksi, lalu buka `http://koperasi-sipaduhok.test`.
+Pada Laragon, reload web server bila virtual host belum terdeteksi, lalu buka `http://toko-sipaduhok.test`.
 
 ## Akun development
 
 Hanya tersedia saat `APP_ENV=local` atau `testing`:
 
-- Admin: `admin@koperasi.test` / `password`
-- Pembeli: `pembeli@koperasi.test` / `password`
+- Admin: `admin@toko.test` / `password`
+- Pembeli: `pembeli@toko.test` / `password`
 
 Untuk produksi, isi `ADMIN_EMAIL` dan `ADMIN_PASSWORD` di `.env` sebelum menjalankan seeder. Jangan gunakan kredensial development di server publik.
 
@@ -127,10 +127,10 @@ Mode `placeholder` hanya dapat checkout pada environment `local` atau `testing`.
 Atur Payment Notification URL di dashboard Midtrans ke:
 
 ```text
-https://koperasi.sipaduhok.id/payments/midtrans/notification
+https://toko.sipaduhok.id/payments/midtrans/notification
 ```
 
-Setiap order Koperasi menjadi satu transaksi Midtrans. Callback diverifikasi memakai signature SHA-512, nominal callback dicocokkan dengan total order, dan pengurangan stok bersifat idempoten sehingga callback berulang tidak mengurangi stok dua kali. Redirect browser hanya mengubah tampilan; status lunas tetap berasal dari callback server-to-server atau sinkronisasi status ke Midtrans.
+Setiap order toko menjadi satu transaksi Midtrans. Callback diverifikasi memakai signature SHA-512, nominal callback dicocokkan dengan total order, dan pengurangan stok bersifat idempoten sehingga callback berulang tidak mengurangi stok dua kali. Redirect browser hanya mengubah tampilan; status lunas tetap berasal dari callback server-to-server atau sinkronisasi status ke Midtrans.
 
 Website dan pengajuan merchant harus menampilkan identitas badan usaha/perorangan, hubungan kemitraan, katalog, harga, proses pemesanan, kebijakan, dan barang yang benar-benar dijalankan. Pemisahan aplikasi tidak boleh dipakai untuk menyamarkan entitas atau menghindari persyaratan onboarding payment gateway.
 
@@ -143,7 +143,7 @@ vendor\bin\pint --test
 npm run build
 ```
 
-Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, verifikasi KTP privat, aktivasi/nonaktivasi pembeli, arsip/pulihkan/hapus permanen produk, panel Midtrans terenkripsi, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas koperasi, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
+Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, verifikasi KTP privat, aktivasi/nonaktivasi pembeli, arsip/pulihkan/hapus permanen produk, panel Midtrans terenkripsi, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas toko, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
 
 ## Struktur fitur utama
 
@@ -171,4 +171,4 @@ tests/Feature/
 
 Untuk produksi, arahkan document root subdomain ke folder `public`, bukan root repository.
 
-URL file upload menggunakan path same-origin `/storage/...` melalui `PUBLIC_STORAGE_URL=/storage`. Dengan demikian katalog tidak bergantung pada nilai `APP_URL` untuk menampilkan foto. `APP_URL` production tetap harus diisi `https://koperasi.sipaduhok.id` karena dipakai Laravel untuk URL email dan proses CLI.
+URL file upload menggunakan path same-origin `/storage/...` melalui `PUBLIC_STORAGE_URL=/storage`. Dengan demikian katalog tidak bergantung pada nilai `APP_URL` untuk menampilkan foto. `APP_URL` production tetap harus diisi `https://toko.sipaduhok.id` karena dipakai Laravel untuk URL email dan proses CLI.

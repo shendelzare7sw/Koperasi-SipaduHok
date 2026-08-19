@@ -48,7 +48,7 @@ class ProductImportController extends Controller
         return response()->streamDownload(function () use ($spreadsheet): void {
             (new XlsxWriter($spreadsheet))->save('php://output');
             $spreadsheet->disconnectWorksheets();
-        }, 'template-import-produk-koperasi-sipaduhok.xlsx', [
+        }, 'template-import-produk-toko-sipaduhok.xlsx', [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
         ]);
@@ -267,8 +267,8 @@ class ProductImportController extends Controller
     {
         $spreadsheet = new Spreadsheet;
         $spreadsheet->getProperties()
-            ->setCreator('Koperasi Sipaduhok')
-            ->setTitle('Template Import Produk Koperasi Sipaduhok')
+            ->setCreator('Toko Sipaduhok')
+            ->setTitle('Template Import Produk Toko Sipaduhok')
             ->setDescription('Template resmi untuk menambahkan produk secara massal.');
 
         $dataSheet = $spreadsheet->getActiveSheet();
@@ -333,7 +333,7 @@ class ProductImportController extends Controller
         $guideSheet = $spreadsheet->createSheet();
         $guideSheet->setTitle('Petunjuk');
         $guideSheet->fromArray([
-            ['PETUNJUK IMPORT PRODUK KOPERASI SIPADUHOK'],
+            ['PETUNJUK IMPORT PRODUK TOKO SIPADUHOK'],
             ['1. Isi produk pada sheet "Data Produk", mulai dari baris 2.'],
             ['2. Sheet "Contoh Pengisian" hanya contoh dan tidak ikut diimpor.'],
             ['3. Jangan mengubah nama, urutan kolom, atau nama sheet "Data Produk".'],

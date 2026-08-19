@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class StoreSetting extends Model
 {
     public const DEFAULTS = [
-        'legal_name' => 'Koperasi Sipaduhok',
-        'support_email' => 'koperasi@sipaduhok.id',
+        'legal_name' => 'Toko Sipaduhok',
+        'support_email' => 'toko@sipaduhok.id',
         'phone' => '',
         'whatsapp' => '',
-        'address' => 'Alamat sekolah belum diatur.',
-        'operating_hours' => 'Senin–Jumat pada jam operasional sekolah',
-        'description' => 'Koperasi sekolah yang menyediakan buku, alat tulis, dan atribut sekolah.',
+        'address' => 'Alamat toko belum diatur.',
+        'operating_hours' => 'Senin–Jumat pada jam operasional toko',
+        'description' => 'Toko kebutuhan sekolah yang menyediakan buku, alat tulis, dan atribut sekolah.',
     ];
 
     protected $fillable = ['key', 'value'];

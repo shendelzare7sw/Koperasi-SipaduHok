@@ -25,7 +25,7 @@
             <a href="{{ route('catalog.index') }}" class="flex items-center gap-3">
                 <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-16 w-16 shrink-0 object-contain drop-shadow-md sm:h-20 sm:w-20">
                 <span class="hidden sm:block">
-                    <span class="block text-base font-extrabold leading-tight">Koperasi Sipaduhok</span>
+                    <span class="block text-base font-extrabold leading-tight">Toko Sipaduhok</span>
                     <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah</span>
                 </span>
             </a>
@@ -87,11 +87,11 @@
                         <a href="{{ route('admin.buyers.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Kelola Pembeli</span>@if($pendingIdentityCount > 0)<span class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">{{ $pendingIdentityCount }}</span>@endif</a>
                         <a href="{{ route('admin.courier.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Kurir Toko</a>
                         <a href="{{ route('admin.settings.payment.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pembayaran Midtrans</a>
-                        <a href="{{ route('admin.settings.store.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Identitas Koperasi</a>
+                        <a href="{{ route('admin.settings.store.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Identitas Toko</a>
                         <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $unreadNotificationCount }}</span>@endif</a>
                         <a href="{{ route('account.profile.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Profil Saya</a>
                         <a href="{{ route('account.security.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pengaturan Akun</a>
-                        <form method="POST" action="{{ route('admin.logout') }}" data-confirm="Anda akan keluar dari panel Koperasi Sipaduhok." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">@csrf<button class="w-full rounded-lg px-3 py-2.5 text-left font-bold text-accent-yellow hover:bg-white/10">Keluar</button></form>
+                        <form method="POST" action="{{ route('admin.logout') }}" data-confirm="Anda akan keluar dari panel Toko Sipaduhok." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">@csrf<button class="w-full rounded-lg px-3 py-2.5 text-left font-bold text-accent-yellow hover:bg-white/10">Keluar</button></form>
                     @else
                         <a href="{{ route('buyer.dashboard') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Dashboard</a>
                         <a href="{{ route('cart.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Keranjang @if(($cartCount ?? 0) > 0)({{ $cartCount }})@endif</a>
@@ -181,10 +181,12 @@
                     <p class="mt-5 max-w-sm text-sm leading-6 text-blue-100">
                         {{ $storeSettings['description'] }}
                     </p>
-                    <span class="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-blue-100">
-                        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                        Bagian dari ekosistem Sipaduhok
-                    </span>
+                    <div class="mt-5 grid max-w-sm gap-2 text-xs font-semibold text-blue-100 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                        <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-shield-halved text-emerald-300" aria-hidden="true"></i>Pembayaran aman</span>
+                        <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-file-invoice text-accent-yellow" aria-hidden="true"></i>Invoice elektronik</span>
+                        <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-headset text-blue-200" aria-hidden="true"></i>Dukungan pelanggan</span>
+                        <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-truck text-blue-200" aria-hidden="true"></i>Pengiriman terlacak</span>
+                    </div>
                 </div>
 
                 <div>
@@ -210,7 +212,7 @@
                 <div>
                     <h2 class="text-sm font-extrabold uppercase tracking-wider text-white">Informasi</h2>
                     <nav class="mt-4 flex flex-col gap-3 text-sm text-blue-100">
-                        <a href="{{ route('pages.about') }}" class="transition hover:text-accent-yellow">Tentang Koperasi</a>
+                        <a href="{{ route('pages.about') }}" class="transition hover:text-accent-yellow">Tentang Toko</a>
                         <a href="{{ route('pages.payment') }}" class="transition hover:text-accent-yellow">Cara Pembayaran</a>
                         <a href="{{ route('pages.shipping') }}" class="transition hover:text-accent-yellow">Kebijakan Pengiriman</a>
                         <a href="{{ route('pages.returns') }}" class="transition hover:text-accent-yellow">Pembatalan & Pengembalian</a>
@@ -219,22 +221,18 @@
                 </div>
 
                 <div>
-                    <h2 class="text-sm font-extrabold uppercase tracking-wider text-white">Kontak Koperasi</h2>
+                    <h2 class="text-sm font-extrabold uppercase tracking-wider text-white">Kontak Resmi</h2>
                     <p class="mt-4 break-all text-sm font-semibold text-blue-100"><i class="fas fa-envelope mr-2 text-accent-yellow"></i>{{ $storeSettings['support_email'] }}</p>
                     @if($storeSettings['phone'])<p class="mt-3 text-sm text-blue-100"><i class="fas fa-phone mr-2 text-accent-yellow"></i>{{ $storeSettings['phone'] }}</p>@endif
+                    @if($storeSettings['address'] && ! str_contains(strtolower($storeSettings['address']), 'belum diatur'))<p class="mt-3 text-xs leading-5 text-blue-100"><i class="fas fa-location-dot mr-2 text-accent-yellow"></i>{{ $storeSettings['address'] }}</p>@endif
                     <p class="mt-3 text-xs leading-5 text-blue-200">{{ $storeSettings['operating_hours'] }}</p>
-                    <a href="https://app.sipaduhok.id" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-bold text-white transition hover:border-accent-yellow hover:text-accent-yellow">
-                        Buka app.sipaduhok.id
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-                        </svg>
-                    </a>
+                    <p class="mt-5 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-xs leading-5 text-blue-100"><i class="fas fa-circle-check mr-2 text-emerald-300" aria-hidden="true"></i>Pastikan komunikasi hanya melalui kontak resmi yang tercantum di situs ini.</p>
                 </div>
             </div>
 
             <div class="mt-10 flex flex-col gap-3 border-t border-white/15 pt-6 text-xs text-blue-200 sm:flex-row sm:items-center sm:justify-between">
                 <p>&copy; {{ date('Y') }} {{ $storeSettings['legal_name'] }}. Seluruh hak dilindungi.</p>
-                <div class="flex flex-wrap gap-x-4 gap-y-2"><a href="{{ route('pages.privacy') }}" class="hover:text-accent-yellow">Kebijakan Privasi</a><a href="{{ route('pages.terms') }}" class="hover:text-accent-yellow">Syarat & Ketentuan</a><span class="font-medium text-blue-100">koperasi.sipaduhok.id</span></div>
+                <div class="flex flex-wrap gap-x-4 gap-y-2"><a href="{{ route('pages.privacy') }}" class="hover:text-accent-yellow">Kebijakan Privasi</a><a href="{{ route('pages.terms') }}" class="hover:text-accent-yellow">Syarat & Ketentuan</a><span class="font-medium text-blue-100">toko.sipaduhok.id</span></div>
             </div>
         </div>
     </footer>

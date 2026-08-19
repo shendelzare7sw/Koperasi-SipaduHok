@@ -1,4 +1,4 @@
-<x-layouts.app title="Keranjang - Koperasi Sipaduhok">
+<x-layouts.app title="Keranjang - Toko Sipaduhok">
     <div class="mb-6 flex items-end justify-between gap-4">
         <div><h1 class="text-3xl font-black text-slate-900">Keranjang</h1><p class="text-slate-500">Periksa jumlah sebelum checkout.</p></div>
         <a href="{{ route('catalog.index') }}" class="text-sm font-bold text-primary hover:text-secondary">Lanjut belanja</a>
@@ -32,7 +32,7 @@
         <aside class="h-fit rounded-2xl bg-gradient-to-br from-primary to-secondary p-6 text-white">
             <p class="text-sm text-blue-50">Subtotal produk</p>
             <p class="mt-2 text-2xl font-black">Rp {{ number_format($total, 0, ',', '.') }}</p>
-            <p class="mt-3 text-xs leading-5 text-slate-400">Tarif Kurir Koperasi ditambahkan saat checkout.</p>
+            <p class="mt-3 text-xs leading-5 text-slate-400">Tarif Kurir Toko ditambahkan saat checkout.</p>
             @if($items->isNotEmpty())
                 <form id="checkout-selected" method="GET" action="{{ route('checkout.create') }}" class="mt-5">
                     <button class="w-full rounded-xl bg-white px-4 py-3 text-center font-bold text-primary transition hover:bg-accent-yellow hover:text-slate-900">Checkout Produk Dipilih</button>

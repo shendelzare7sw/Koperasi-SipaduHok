@@ -21,7 +21,7 @@ class RegistrationOtpNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $appName = config('app.name', 'Koperasi Sipaduhok');
+        $appName = config('app.name', 'Toko Sipaduhok');
 
         return (new MailMessage)
             ->subject('Kode OTP Pendaftaran '.$appName)
@@ -29,8 +29,8 @@ class RegistrationOtpNotification extends Notification
             ->line('Gunakan kode OTP berikut untuk menyelesaikan pendaftaran akun pembeli:')
             ->line('**'.$this->code.'**')
             ->line('Kode berlaku selama '.$this->expiresMinutes.' menit dan hanya dapat digunakan satu kali.')
-            ->line('Jangan berikan kode ini kepada siapa pun, termasuk pihak yang mengaku sebagai admin koperasi.')
+            ->line('Jangan berikan kode ini kepada siapa pun, termasuk pihak yang mengaku sebagai admin toko.')
             ->line('Jika Anda tidak melakukan pendaftaran, abaikan email ini.')
-            ->salutation('Salam, Koperasi Sipaduhok');
+            ->salutation('Salam, Toko Sipaduhok');
     }
 }

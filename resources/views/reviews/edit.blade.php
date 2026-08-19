@@ -1,4 +1,4 @@
-<x-layouts.app title="Ulasan Produk - Koperasi Sipaduhok">
+<x-layouts.app title="Ulasan Produk - Toko Sipaduhok">
     <div class="mx-auto max-w-2xl">
         <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pembelian terverifikasi</p>

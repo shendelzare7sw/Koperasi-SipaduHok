@@ -54,7 +54,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey(), 300);
 
             throw ValidationException::withMessages([
-                'email' => 'Akun Anda sedang dinonaktifkan. Hubungi admin Koperasi Sipaduhok.',
+                'email' => 'Akun Anda sedang dinonaktifkan. Hubungi admin Toko Sipaduhok.',
             ]);
         }
 

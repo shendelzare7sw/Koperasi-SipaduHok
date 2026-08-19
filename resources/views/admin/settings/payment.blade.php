@@ -4,7 +4,7 @@
             <div>
                 <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pengaturan pembayaran</p>
                 <h1 class="mt-1 text-3xl font-black text-slate-900">Midtrans Payment Gateway</h1>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Kelola kredensial transaksi langsung Koperasi Sipaduhok. Server Key dan Client Key yang disimpan melalui panel dienkripsi menggunakan APP_KEY.</p>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Kelola kredensial transaksi langsung Toko Sipaduhok. Server Key dan Client Key yang disimpan melalui panel dienkripsi menggunakan APP_KEY.</p>
             </div>
             <span class="inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-xs font-extrabold {{ $status['ready'] ? 'bg-emerald-100 text-emerald-700' : ($status['enabled'] ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600') }}">
                 <span class="h-2 w-2 rounded-full {{ $status['ready'] ? 'bg-emerald-500' : ($status['enabled'] ? 'bg-amber-500' : 'bg-slate-400') }}"></span>
@@ -92,7 +92,7 @@
             </div>
 
             <div class="mt-7 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-xs leading-5 text-slate-400">IRIS, escrow, payout seller, dan API ongkir DigiRack tidak digunakan pada sistem koperasi satu penjual ini.</p>
+                <p class="text-xs leading-5 text-slate-400">IRIS, escrow, payout seller, dan API ongkir eksternal tidak digunakan pada sistem toko satu penjual ini.</p>
                 <button class="shrink-0 rounded-xl bg-primary px-5 py-3 font-bold text-white hover:bg-secondary"><i class="fas fa-shield-halved mr-2" aria-hidden="true"></i>Simpan Midtrans</button>
             </div>
         </form>

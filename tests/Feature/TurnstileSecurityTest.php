@@ -18,7 +18,7 @@ class TurnstileSecurityTest extends TestCase
 
         config()->set('services.turnstile.site_key', '1x00000000000000000000AA');
         config()->set('services.turnstile.secret_key', '1x0000000000000000000000000000000AA');
-        config()->set('services.turnstile.hostname', 'koperasi.example.test');
+        config()->set('services.turnstile.hostname', 'toko.example.test');
     }
 
     public function test_login_and_registration_render_turnstile_widgets_with_distinct_actions(): void
@@ -73,7 +73,7 @@ class TurnstileSecurityTest extends TestCase
             'challenges.cloudflare.com/turnstile/v0/siteverify' => Http::response([
                 'success' => true,
                 'action' => 'login',
-                'hostname' => 'koperasi.example.test',
+                'hostname' => 'toko.example.test',
             ]),
         ]);
 
@@ -97,7 +97,7 @@ class TurnstileSecurityTest extends TestCase
             'challenges.cloudflare.com/turnstile/v0/siteverify' => Http::response([
                 'success' => true,
                 'action' => 'register',
-                'hostname' => 'koperasi.example.test',
+                'hostname' => 'toko.example.test',
             ]),
         ]);
 

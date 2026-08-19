@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/produk/{product:slug}', [CatalogController::class, 'show'])->name('catalog.show');
-Route::get('/tentang-koperasi', [PageController::class, 'about'])->name('pages.about');
+Route::get('/tentang-toko', [PageController::class, 'about'])->name('pages.about');
 Route::get('/pusat-bantuan', [PageController::class, 'help'])->name('pages.help');
 Route::get('/cara-pembayaran', [PageController::class, 'payment'])->name('pages.payment');
 Route::get('/kebijakan-pengiriman', [PageController::class, 'shipping'])->name('pages.shipping');

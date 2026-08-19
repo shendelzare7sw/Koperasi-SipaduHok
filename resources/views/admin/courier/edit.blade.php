@@ -1,7 +1,7 @@
-<x-layouts.app title="Pengaturan Kurir Koperasi">
+<x-layouts.app title="Pengaturan Kurir Toko">
     <div class="mx-auto max-w-2xl">
         <p class="font-bold uppercase tracking-wide text-primary">Satu Kurir Utama</p>
-        <h1 class="mt-1 text-3xl font-black">Pengaturan Kurir Koperasi</h1>
+        <h1 class="mt-1 text-3xl font-black">Pengaturan Kurir Toko</h1>
         <p class="mt-2 text-slate-500">Tidak terhubung ke API ongkir. Tarif flat ini dipakai otomatis pada seluruh checkout baru.</p>
         <form method="POST" action="{{ route('admin.courier.update') }}" class="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6" data-confirm="Tarif baru akan dipakai pada checkout berikutnya." data-confirm-title="Simpan pengaturan kurir?" data-confirm-button="Ya, simpan">@csrf @method('PUT')
             <label class="block text-sm font-semibold">Nama kurir<input name="name" value="{{ old('name', $courier->name) }}" required class="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3"></label>

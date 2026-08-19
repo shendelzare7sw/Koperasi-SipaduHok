@@ -12,7 +12,7 @@
     <main class="mx-auto max-w-3xl border-4 border-slate-950 bg-white p-6 sm:p-8 print:max-w-none">
         <header class="flex items-start justify-between gap-4 border-b-4 border-slate-950 pb-5">
             <div class="flex items-center gap-3"><img src="{{ asset('img/logo.png') }}" alt="Logo" class="h-20 w-20 object-contain"><div><h1 class="text-xl font-black">{{ $settings['legal_name'] }}</h1><p class="text-xs">{{ $settings['support_email'] }}</p></div></div>
-            <div class="text-right"><p class="text-xs font-black uppercase tracking-widest">Kurir Koperasi</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p></div>
+            <div class="text-right"><p class="text-xs font-black uppercase tracking-widest">Kurir Toko</p><p class="mt-1 font-mono text-lg font-black">{{ $order->invoice_number }}</p></div>
         </header>
         <div class="mt-6 grid gap-6 sm:grid-cols-2">
             <section class="border-2 border-slate-950 p-5"><p class="text-xs font-black uppercase tracking-widest">Penerima</p><p class="mt-3 text-2xl font-black">{{ $order->buyer_name }}</p><p class="mt-1 font-bold">{{ $order->phone }}</p><p class="mt-4 whitespace-pre-line text-sm leading-6">{{ $order->delivery_address }}</p><p class="mt-4 text-sm"><strong>Siswa:</strong> {{ $order->student_name }} / {{ $order->class_name }}</p></section>

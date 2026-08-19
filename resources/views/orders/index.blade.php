@@ -1,4 +1,4 @@
-<x-layouts.app title="Riwayat Pesanan - Koperasi Sipaduhok">
+<x-layouts.app title="Riwayat Pesanan - Toko Sipaduhok">
     <h1 class="text-3xl font-black text-slate-900">Riwayat Pesanan</h1>
     <div class="mt-6 space-y-4">
         @forelse($orders as $order)

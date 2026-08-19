@@ -1,9 +1,9 @@
-<x-layouts.app title="Profil Saya - Koperasi Sipaduhok">
+<x-layouts.app title="Profil Saya - Toko Sipaduhok">
     <div class="mx-auto max-w-4xl">
         <div class="mb-6">
             <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pengaturan akun</p>
             <h1 class="mt-1 text-3xl font-black text-slate-900">Profil Saya</h1>
-            <p class="mt-2 text-sm text-slate-500">Kelola identitas dan kontak yang digunakan pada akun koperasi.</p>
+            <p class="mt-2 text-sm text-slate-500">Kelola identitas dan kontak yang digunakan pada akun toko.</p>
         </div>
 
         @include('account._navigation')

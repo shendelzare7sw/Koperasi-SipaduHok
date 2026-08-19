@@ -18,13 +18,13 @@ return new class extends Migration
 
         $now = now();
         DB::table('store_settings')->insert([
-            ['key' => 'legal_name', 'value' => 'Koperasi Sipaduhok', 'created_at' => $now, 'updated_at' => $now],
-            ['key' => 'support_email', 'value' => 'koperasi@sipaduhok.id', 'created_at' => $now, 'updated_at' => $now],
+            ['key' => 'legal_name', 'value' => 'Toko Sipaduhok', 'created_at' => $now, 'updated_at' => $now],
+            ['key' => 'support_email', 'value' => 'toko@sipaduhok.id', 'created_at' => $now, 'updated_at' => $now],
             ['key' => 'phone', 'value' => '', 'created_at' => $now, 'updated_at' => $now],
             ['key' => 'whatsapp', 'value' => '', 'created_at' => $now, 'updated_at' => $now],
-            ['key' => 'address', 'value' => 'Alamat sekolah belum diatur.', 'created_at' => $now, 'updated_at' => $now],
-            ['key' => 'operating_hours', 'value' => 'Senin–Jumat pada jam operasional sekolah', 'created_at' => $now, 'updated_at' => $now],
-            ['key' => 'description', 'value' => 'Koperasi sekolah yang menyediakan buku, alat tulis, dan atribut sekolah.', 'created_at' => $now, 'updated_at' => $now],
+            ['key' => 'address', 'value' => 'Alamat toko belum diatur.', 'created_at' => $now, 'updated_at' => $now],
+            ['key' => 'operating_hours', 'value' => 'Senin–Jumat pada jam operasional toko', 'created_at' => $now, 'updated_at' => $now],
+            ['key' => 'description', 'value' => 'Toko kebutuhan sekolah yang menyediakan buku, alat tulis, dan atribut sekolah.', 'created_at' => $now, 'updated_at' => $now],
         ]);
     }
 

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('couriers', function (Blueprint $table) {
             $table->id();
             $table->string('code')->default('main')->unique();
-            $table->string('name')->default('Kurir Koperasi');
+            $table->string('name')->default('Kurir Toko');
             $table->unsignedBigInteger('fee')->default(0);
             $table->string('estimate', 100)->nullable();
             $table->boolean('is_active')->default(true)->index();

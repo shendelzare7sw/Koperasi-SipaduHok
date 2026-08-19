@@ -38,7 +38,7 @@ class IdentityVerificationTest extends TestCase
             'postal_code' => '40123',
             'is_primary' => true,
         ]);
-        Courier::create(['code' => 'main', 'name' => 'Kurir Koperasi', 'fee' => 10000, 'is_active' => true]);
+        Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);
 
         $this->actingAs($buyer)
             ->get(route('checkout.create', ['items' => [$cartItem->id]]))

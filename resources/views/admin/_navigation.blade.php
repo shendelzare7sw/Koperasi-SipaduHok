@@ -7,7 +7,7 @@
         $activeClass = 'bg-accent-yellow text-slate-900';
         $idleClass = 'text-blue-100 hover:bg-white/10 hover:text-white';
     @endphp
-    <nav class="flex gap-2 overflow-x-auto lg:mt-3 lg:grid lg:gap-1" aria-label="Menu admin koperasi">
+    <nav class="flex gap-2 overflow-x-auto lg:mt-3 lg:grid lg:gap-1" aria-label="Menu admin toko">
         <a href="{{ route('admin.dashboard') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.dashboard') ? $activeClass : $idleClass }}">Ringkasan</a>
         <a href="{{ route('admin.products.index') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.products.*') && ! request()->routeIs('admin.products.import.*', 'admin.products.archived') ? $activeClass : $idleClass }}">Produk</a>
         <a href="{{ route('admin.products.archived') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.products.archived') ? $activeClass : $idleClass }}">Arsip Produk</a>
@@ -20,7 +20,7 @@
         <a href="{{ route('admin.reports.sales') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.reports.*') ? $activeClass : $idleClass }}">Laporan Penjualan</a>
         <a href="{{ route('admin.courier.edit') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.courier.*') ? $activeClass : $idleClass }}">Kurir & Tarif</a>
         <a href="{{ route('admin.settings.payment.edit') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.settings.payment.*') ? $activeClass : $idleClass }}">Pembayaran</a>
-        <a href="{{ route('admin.settings.store.edit') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.settings.store.*') ? $activeClass : $idleClass }}">Identitas Koperasi</a>
+        <a href="{{ route('admin.settings.store.edit') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ request()->routeIs('admin.settings.store.*') ? $activeClass : $idleClass }}">Identitas Toko</a>
         <a href="{{ route('catalog.index') }}" class="whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-bold {{ $idleClass }}">Lihat Toko ↗</a>
     </nav>
 </aside>

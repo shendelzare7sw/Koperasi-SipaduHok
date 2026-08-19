@@ -1,4 +1,4 @@
-<x-layouts.app title="Alamat Tersimpan - Koperasi Sipaduhok">
+<x-layouts.app title="Alamat Tersimpan - Toko Sipaduhok">
     <div
         class="mx-auto max-w-5xl"
         x-data="{ adding: {{ $errors->any() && ! old('_editing_address_id') ? 'true' : 'false' }} }"
@@ -8,7 +8,7 @@
             <div>
                 <p class="text-sm font-extrabold uppercase tracking-widest text-secondary">Pengaturan akun</p>
                 <h1 class="mt-1 text-3xl font-black text-slate-900">Alamat Tersimpan</h1>
-                <p class="mt-2 text-sm text-slate-500">Kelola alamat tujuan Kurir Koperasi tanpa API ekspedisi atau ongkir eksternal.</p>
+                <p class="mt-2 text-sm text-slate-500">Kelola alamat tujuan pengiriman Kurir Toko.</p>
             </div>
             <button type="button" @click="adding = true" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-secondary">
                 <i class="fas fa-plus" aria-hidden="true"></i>Tambah Alamat

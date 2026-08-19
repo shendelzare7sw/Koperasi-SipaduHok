@@ -23,7 +23,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-3 py-4">
             <a href="{{ route('catalog.index') }}" class="flex items-center gap-3">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-16 w-16 shrink-0 object-contain drop-shadow-md sm:h-20 sm:w-20">
+                <img src="{{ asset('img/logo.png') }}?v={{ filemtime(public_path('img/logo.png')) }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-16 w-16 shrink-0 object-contain drop-shadow-md sm:h-20 sm:w-20">
                 <span class="hidden sm:block">
                     <span class="block text-base font-extrabold leading-tight">Toko Sipaduhok</span>
                     <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah</span>
@@ -172,7 +172,7 @@
             <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.2fr]">
                 <div>
                     <a href="{{ route('catalog.index') }}" class="inline-flex items-center gap-3 text-white">
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" data-brand-logo="footer" class="h-20 w-20 shrink-0 object-contain drop-shadow-lg">
+                        <img src="{{ asset('img/logo.png') }}?v={{ filemtime(public_path('img/logo.png')) }}" alt="Logo Sipaduhok" data-brand-logo="footer" class="h-20 w-20 shrink-0 object-contain drop-shadow-lg">
                         <span>
                             <span class="block font-extrabold leading-tight">{{ $storeSettings['legal_name'] }}</span>
                             <span class="block text-xs text-blue-200">Belanja kebutuhan sekolah</span>

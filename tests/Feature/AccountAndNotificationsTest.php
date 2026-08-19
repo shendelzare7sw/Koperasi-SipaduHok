@@ -111,6 +111,7 @@ class AccountAndNotificationsTest extends TestCase
             ->assertOk()
             ->assertSee('data-brand-logo="header"', false)
             ->assertSee('data-brand-logo="footer"', false)
+            ->assertSee('img/logo.png?v='.filemtime(public_path('img/logo.png')), false)
             ->assertSee('data-back-link', false)
             ->assertSee('Kembali ke Katalog')
             ->assertDontSee('data-brand-logo-container', false);

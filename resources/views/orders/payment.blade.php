@@ -6,7 +6,7 @@
     <div class="mx-auto max-w-2xl">
         <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
             <div class="bg-gradient-to-br from-primary to-secondary px-6 py-8 text-center text-white sm:px-10">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo Sipaduhok" class="mx-auto h-20 w-20 object-contain drop-shadow-lg">
+                <img src="{{ asset('img/logo.png') }}?v={{ filemtime(public_path('img/logo.png')) }}" alt="Logo Sipaduhok" class="mx-auto h-20 w-20 object-contain drop-shadow-lg">
                 <p class="mt-4 text-sm font-bold uppercase tracking-widest text-accent-yellow">Pesanan berhasil dibuat</p>
                 <h1 class="mt-2 text-2xl font-black">Selesaikan Pembayaran</h1>
                 <p class="mt-2 text-sm text-blue-50">Pembayaran diterima langsung oleh Toko Sipaduhok melalui Midtrans.</p>

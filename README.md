@@ -53,9 +53,9 @@ Alur status:
 ```text
 menunggu pembayaran
   -> diproses
-  -> siap dikirim
-  -> dalam pengantaran
-  -> tiba di alamat (admin wajib unggah foto bukti)
+  -> siap dikirim (penanda tanpa lampiran)
+  -> dalam pengantaran (admin wajib unggah 1–5 foto)
+  -> tiba di alamat (admin wajib unggah 1–5 foto)
   -> selesai (pembeli konfirmasi penerimaan)
 ```
 
@@ -63,7 +63,7 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 
 ## Pengalaman retail
 
-- Profil, pengaturan keamanan, pemulihan akun berbasis OTP, dropdown akun, dan notifikasi database untuk kedua role
+- Profil, pengaturan keamanan, pemulihan akun berbasis OTP, dropdown akun/notifikasi, serta dropdown keranjang desktop
 - Galeri maksimal lima foto dengan preview sebelum upload dan lightbox pada detail produk/bukti tiba
 - Wishlist dan CRUD alamat lengkap khusus pembeli; checkout wajib memilih alamat tersimpan dan menyimpan snapshot alamat pada pesanan/invoice
 - Ulasan hanya untuk pembelian yang selesai; admin dapat memberi balasan resmi
@@ -131,7 +131,7 @@ Atur Webhook URL pada proyek Sandbox dan Production di dashboard Paywuz ke:
 https://toko.sipaduhok.id/payments/paywuz/webhook
 ```
 
-Setiap order toko menjadi satu transaksi Paywuz dengan `orderId` invoice yang idempoten. Webhook diverifikasi dari raw body memakai `X-Paywuz-Signature` HMAC-SHA256, `X-Paywuz-Delivery` dideduplikasi, referensi serta nominal dicocokkan, dan stok hanya berkurang sekali setelah event `transaction.paid`. Event `transaction.settlement` tetap dianggap menunggu settlement dan belum memulai pemenuhan order.
+Setiap order toko menjadi satu transaksi Paywuz dengan `orderId` invoice yang idempoten. Webhook diverifikasi dari raw body memakai `X-Paywuz-Signature` HMAC-SHA256, `X-Paywuz-Delivery` dideduplikasi, serta referensi dan nominal dicocokkan. Event `transaction.settlement` menandakan pembayaran pelanggan telah dikonfirmasi sehingga pesanan langsung diproses dan stok berkurang tepat satu kali; event `transaction.paid` berikutnya menandakan dana telah masuk ke saldo merchant dan tetap diproses secara idempoten.
 
 Website dan pengajuan merchant harus menampilkan identitas badan usaha/perorangan, hubungan kemitraan, katalog, harga, proses pemesanan, kebijakan, dan barang yang benar-benar dijalankan. Pemisahan aplikasi tidak boleh dipakai untuk menyamarkan entitas atau menghindari persyaratan onboarding payment gateway.
 
@@ -173,3 +173,5 @@ tests/Feature/
 Untuk produksi, arahkan document root subdomain ke folder `public`, bukan root repository.
 
 URL file upload menggunakan path same-origin `/storage/...` melalui `PUBLIC_STORAGE_URL=/storage`. Dengan demikian katalog tidak bergantung pada nilai `APP_URL` untuk menampilkan foto. `APP_URL` production tetap harus diisi `https://toko.sipaduhok.id` karena dipakai Laravel untuk URL email dan proses CLI.
+
+Checklist deployment production lengkap tersedia di [`docs/deployment-production.md`](docs/deployment-production.md).

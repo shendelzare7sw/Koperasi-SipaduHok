@@ -54,8 +54,8 @@ class PaywuzStatusService
                 return false;
             }
 
-            if ($status === 'success') {
-                $changed = $this->markPaid($lockedOrder);
+            if (in_array($status, ['settlement', 'success'], true)) {
+                $changed = $this->markPaid($lockedOrder, $status, $transaction);
                 $notificationType = $changed ? 'paid' : null;
 
                 return $changed;
@@ -71,17 +71,6 @@ class PaywuzStatusService
             $updates = [];
             if ($lockedOrder->payment_status === PaymentStatus::Unpaid) {
                 $updates['payment_status'] = PaymentStatus::Pending;
-            }
-
-            if ($status === 'settlement' && ! $lockedOrder->gateway_settled_at) {
-                $updates['gateway_settled_at'] = now();
-                $this->record(
-                    $lockedOrder,
-                    $lockedOrder->status,
-                    $lockedOrder->status,
-                    'paywuz_payment_settled',
-                    'Pembayaran dikonfirmasi gateway dan sedang menunggu settlement Paywuz.',
-                );
             }
 
             if (filled($transaction['paymentMethod'] ?? null)) {
@@ -104,14 +93,15 @@ class PaywuzStatusService
         if ($changed && $notificationType) {
             $updatedOrder = $order->fresh(['buyer']);
             $notificationType === 'paid'
-                ? $this->notifications->paymentConfirmed($updatedOrder, 'Paywuz')
+                ? $this->notifications->paymentConfirmed($updatedOrder, 'penyedia pembayaran')
                 : $this->notifications->paymentFailed($updatedOrder);
         }
 
         return $changed;
     }
 
-    private function markPaid(Order $order): bool
+    /** @param array<string, mixed> $transaction */
+    private function markPaid(Order $order, string $gatewayStatus, array $transaction): bool
     {
         if ($order->payment_status === PaymentStatus::Paid) {
             return false;
@@ -139,18 +129,28 @@ class PaywuzStatusService
         }
 
         $from = $order->status;
-        $order->update([
+        $updates = [
             'payment_status' => PaymentStatus::Paid,
             'status' => OrderStatus::Processing,
             'paid_at' => $order->paid_at ?: now(),
-        ]);
+        ];
+
+        if ($gatewayStatus === 'settlement' && ! $order->gateway_settled_at) {
+            $updates['gateway_settled_at'] = now();
+        }
+
+        if (filled($transaction['totalPayment'] ?? null)) {
+            $updates['gateway_total'] = max($order->total, (int) $transaction['totalPayment']);
+        }
+
+        $order->update($updates);
 
         $this->record(
             $order,
             $from,
             OrderStatus::Processing,
-            'paywuz_payment_confirmed',
-            'Dana dikonfirmasi masuk ke saldo merchant oleh Paywuz.',
+            'gateway_payment_confirmed',
+            'Pembayaran pelanggan telah dikonfirmasi oleh penyedia pembayaran.',
         );
 
         return true;
@@ -170,9 +170,9 @@ class PaywuzStatusService
 
         $from = $order->status;
         $note = match ($status) {
-            'expired' => 'Pembayaran kedaluwarsa di Paywuz.',
-            'cancelled' => 'Pembayaran dibatalkan melalui Paywuz.',
-            default => 'Pembayaran gagal atau ditolak oleh Paywuz.',
+            'expired' => 'Pembayaran telah kedaluwarsa.',
+            'cancelled' => 'Pembayaran dibatalkan melalui penyedia pembayaran.',
+            default => 'Pembayaran gagal atau ditolak oleh penyedia pembayaran.',
         };
 
         $order->update([

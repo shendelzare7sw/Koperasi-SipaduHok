@@ -13,7 +13,10 @@ use RuntimeException;
 
 class PaywuzPaymentGateway implements PaymentGateway
 {
-    public function __construct(private readonly PaymentConfiguration $configuration) {}
+    public function __construct(
+        private readonly PaymentConfiguration $configuration,
+        private readonly PaywuzTransactionValidator $validator,
+    ) {}
 
     public function paymentMethods(): array
     {
@@ -69,7 +72,7 @@ class PaywuzPaymentGateway implements PaymentGateway
             || blank($data['id'] ?? null)
             || blank($data['status'] ?? null)
             || ! hash_equals((string) $order->invoice_number, (string) ($data['orderId'] ?? ''))
-            || (int) ($data['amount'] ?? 0) !== $order->total) {
+            || ! $this->validator->amountMatches($order, $data)) {
             throw new RuntimeException('Respons pembuatan transaksi Paywuz tidak lengkap.');
         }
 
@@ -96,7 +99,7 @@ class PaywuzPaymentGateway implements PaymentGateway
         if (! is_array($data)
             || blank($data['status'] ?? null)
             || ! hash_equals((string) $order->invoice_number, (string) ($data['orderId'] ?? ''))
-            || (int) ($data['amount'] ?? 0) !== $order->total
+            || ! $this->validator->amountMatches($order, $data)
             || (filled($order->payment_reference)
                 && ! hash_equals((string) $order->payment_reference, (string) ($data['id'] ?? '')))) {
             throw new RuntimeException('Respons status transaksi Paywuz tidak lengkap.');

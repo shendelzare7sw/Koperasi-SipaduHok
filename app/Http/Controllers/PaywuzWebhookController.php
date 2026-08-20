@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\Payments\PaymentConfiguration;
+use App\Services\Payments\PaywuzTransactionValidator;
 use App\Services\PaywuzStatusService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class PaywuzWebhookController extends Controller
         Request $request,
         PaywuzStatusService $paywuz,
         PaymentConfiguration $payments,
+        PaywuzTransactionValidator $transactionValidator,
     ): JsonResponse {
         $rawBody = $request->getContent();
         $payload = json_decode($rawBody, true);
@@ -88,7 +90,7 @@ class PaywuzWebhookController extends Controller
             return response()->json(['message' => 'Webhook accepted; order not found.'], 202);
         }
 
-        if ((int) data_get($payload, 'data.amount') !== $order->total) {
+        if (! $transactionValidator->amountMatches($order, $payload['data'])) {
             return response()->json(['message' => 'Webhook amount does not match the order.'], 422);
         }
 

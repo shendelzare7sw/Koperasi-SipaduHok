@@ -104,9 +104,10 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
             ]]),
             'https://api.paywuz.id/v1/transactions' => Http::response(['data' => [
                 'id' => '550e8400-e29b-41d4-a716-446655440000',
-                'orderId' => 'KSP-'.now()->format('Ymd').'-000001',
-                'amount' => 50000,
-                'totalPayment' => 50640,
+                'orderId' => 'TSH-'.now()->format('Ymd').'-000001',
+                'amount' => 49360,
+                'fee' => ['totalIdr' => 640],
+                'totalPayment' => 50000,
                 'paymentMethod' => 'QRIS',
                 'paymentUrl' => 'https://paywuz.id/pay/550e8400-e29b-41d4-a716-446655440000',
                 'status' => 'pending',
@@ -132,9 +133,10 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
 
         $order = Order::firstOrFail();
         $this->assertSame('paywuz', $order->payment_gateway);
+        $this->assertStringStartsWith('TSH-', $order->invoice_number);
         $this->assertSame('sandbox', $order->payment_environment);
         $this->assertSame('QRIS', $order->gateway_payment_method);
-        $this->assertSame(50640, $order->gateway_total);
+        $this->assertSame(50000, $order->gateway_total);
         $this->assertSame('https://paywuz.id/pay/550e8400-e29b-41d4-a716-446655440000', $order->payment_url);
 
         Http::assertSent(fn ($request) => $request->url() === 'https://api.paywuz.id/v1/transactions'
@@ -144,7 +146,7 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
             && $request['paymentMethod'] === 'QRIS');
     }
 
-    public function test_signed_paywuz_webhooks_are_idempotent_and_only_paid_event_fulfils_order(): void
+    public function test_settlement_confirms_customer_payment_and_later_paid_event_remains_idempotent(): void
     {
         $apiKey = $this->enablePaywuz();
         [$buyer] = $this->buyerWithAddress(false);
@@ -154,9 +156,9 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
         $settlement = $this->webhookPayload($order, 'transaction.settlement', 'settlement');
         $this->sendWebhook($settlement, $apiKey, 'delivery-settlement')->assertOk();
 
-        $this->assertSame(PaymentStatus::Pending, $order->fresh()->payment_status);
-        $this->assertSame(OrderStatus::PendingPayment, $order->fresh()->status);
-        $this->assertSame(10, $product->fresh()->stock);
+        $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+        $this->assertSame(OrderStatus::Processing, $order->fresh()->status);
+        $this->assertSame(8, $product->fresh()->stock);
         $this->assertNotNull($order->fresh()->gateway_settled_at);
 
         $paid = $this->webhookPayload($order, 'transaction.paid', 'success');
@@ -166,8 +168,53 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
         $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
         $this->assertSame(OrderStatus::Processing, $order->fresh()->status);
         $this->assertSame(8, $product->fresh()->stock);
-        $this->assertSame(1, $order->histories()->where('action', 'paywuz_payment_confirmed')->count());
+        $this->assertSame(1, $order->histories()->where('action', 'gateway_payment_confirmed')->count());
         $this->assertSame(1, $buyer->notifications()->count());
+    }
+
+    public function test_pending_payment_can_be_reopened_without_creating_another_order(): void
+    {
+        $this->enablePaywuz();
+        [$buyer] = $this->buyerWithAddress(false);
+        $product = Product::factory()->create(['stock' => 10]);
+        $order = $this->paywuzOrder($buyer, $product);
+        $order->update(['payment_url' => 'https://paywuz.id/pay/550e8400-e29b-41d4-a716-446655440000']);
+
+        $this->actingAs($buyer)
+            ->get(route('orders.index'))
+            ->assertOk()
+            ->assertSee('Selesaikan pembayaran dari detail pesanan');
+
+        $this->get(route('orders.payment', $order))
+            ->assertOk()
+            ->assertSee('Selesaikan Pembayaran')
+            ->assertDontSee('Buka Pembayaran Paywuz');
+
+        $this->assertDatabaseCount('orders', 1);
+    }
+
+    public function test_opening_pending_order_synchronizes_customer_settlement(): void
+    {
+        $this->enablePaywuz();
+        [$buyer] = $this->buyerWithAddress(false);
+        $product = Product::factory()->create(['stock' => 10]);
+        $order = $this->paywuzOrder($buyer, $product);
+
+        Http::fake([
+            'https://api.paywuz.id/v1/transactions/KSP-TEST-PAYWUZ' => Http::response(['data' => [
+                'id' => $order->payment_reference,
+                'orderId' => $order->invoice_number,
+                'amount' => $order->total,
+                'totalPayment' => $order->total,
+                'paymentMethod' => 'QRIS',
+                'status' => 'settlement',
+            ]]),
+        ]);
+
+        $this->actingAs($buyer)->get(route('orders.show', $order))->assertOk()->assertSee('Lunas');
+
+        $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+        $this->assertSame(8, $product->fresh()->stock);
     }
 
     public function test_paywuz_webhook_rejects_invalid_signature_and_amount(): void
@@ -186,6 +233,24 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
         $payload['data']['amount'] = $order->total + 1;
         $this->sendWebhook($payload, $apiKey, 'delivery-wrong-amount')->assertStatus(422);
         $this->assertSame(PaymentStatus::Pending, $order->fresh()->payment_status);
+    }
+
+    public function test_paywuz_webhook_accepts_merchant_fee_amount_when_total_payment_matches_invoice(): void
+    {
+        $apiKey = $this->enablePaywuz();
+        [$buyer] = $this->buyerWithAddress(false);
+        $product = Product::factory()->create(['stock' => 10]);
+        $order = $this->paywuzOrder($buyer, $product);
+        $order->update(['gateway_total' => $order->total]);
+
+        $payload = $this->webhookPayload($order, 'transaction.paid', 'success');
+        $payload['data']['amount'] = $order->total - 640;
+        $payload['data']['totalPayment'] = $order->total;
+
+        $this->sendWebhook($payload, $apiKey, 'delivery-merchant-fee')->assertOk();
+
+        $this->assertSame(PaymentStatus::Paid, $order->fresh()->payment_status);
+        $this->assertSame(8, $product->fresh()->stock);
     }
 
     public function test_buyer_can_securely_sync_and_cancel_paywuz_transactions(): void
@@ -277,6 +342,12 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
             'city' => 'Bandung',
             'province' => 'Jawa Barat',
             'postal_code' => '40123',
+            'province_code' => '32',
+            'city_code' => '32.73',
+            'district_code' => '32.73.01',
+            'village_code' => '32.73.01.1001',
+            'latitude' => '-6.1783060',
+            'longitude' => '106.6318890',
             'is_primary' => true,
         ]);
 

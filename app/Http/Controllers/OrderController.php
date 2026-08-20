@@ -26,11 +26,18 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-    public function show(Request $request, Order $order): View
+    public function show(Request $request, Order $order, PaywuzStatusService $payments): View
     {
         $this->authorizeOwner($request, $order);
 
-        return view('orders.show', ['order' => $order->load(['items.product', 'items.review', 'histories.actor'])]);
+        if ($order->payment_gateway === 'paywuz'
+            && in_array($order->payment_status, [PaymentStatus::Unpaid, PaymentStatus::Pending], true)
+            && filled($order->payment_reference)) {
+            $payments->sync($order);
+            $order->refresh();
+        }
+
+        return view('orders.show', ['order' => $order->load(['items.product', 'items.review', 'histories.actor', 'dispatchProofs', 'deliveryProofs'])]);
     }
 
     public function invoice(Request $request, Order $order): View
@@ -53,11 +60,11 @@ class OrderController extends Controller
         }
 
         if ($order->payment_gateway !== 'paywuz' || ! $payments->isPaywuzEnabled()) {
-            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Pembayaran Paywuz tidak aktif untuk pesanan ini.']);
+            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Layanan pembayaran digital tidak aktif untuk pesanan ini.']);
         }
 
         if (in_array($order->payment_status, [PaymentStatus::Failed, PaymentStatus::Expired], true)) {
-            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Transaksi Paywuz ini sudah gagal, dibatalkan, atau kedaluwarsa.']);
+            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Pembayaran ini sudah gagal, dibatalkan, atau kedaluwarsa.']);
         }
 
         if (blank($order->payment_url)) {
@@ -74,7 +81,7 @@ class OrderController extends Controller
                 report($exception);
 
                 return redirect()->route('orders.show', $order)->withErrors([
-                    'payment' => 'Kanal Paywuz belum dapat dibuka. Silakan coba beberapa saat lagi.',
+                    'payment' => 'Kanal pembayaran belum dapat dibuka. Silakan coba beberapa saat lagi.',
                 ]);
             }
         }
@@ -91,7 +98,7 @@ class OrderController extends Controller
 
         return back()->with(
             'success',
-            $changed ? 'Status pembayaran berhasil diperbarui.' : 'Belum ada perubahan status dari Paywuz.',
+            $changed ? 'Status pembayaran berhasil diperbarui.' : 'Belum ada perubahan status pembayaran.',
         );
     }
 
@@ -113,7 +120,7 @@ class OrderController extends Controller
         } catch (Throwable $exception) {
             report($exception);
 
-            return back()->withErrors(['payment' => 'Transaksi belum dapat dibatalkan melalui Paywuz.']);
+            return back()->withErrors(['payment' => 'Transaksi belum dapat dibatalkan melalui penyedia pembayaran.']);
         }
 
         return back()->with('success', 'Transaksi pembayaran berhasil dibatalkan.');

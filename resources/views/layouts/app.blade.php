@@ -24,7 +24,7 @@
             ? auth()->user()->cartItems()->sum('quantity')
             : 0;
     @endphp
-    <header x-data="{ open: false }" class="border-b-4 border-accent-yellow bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/15">
+    <header x-data="{ open: false }" data-sticky-header class="sticky top-0 z-50 border-b-4 border-accent-yellow bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/15">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-3 py-4">
             <a href="{{ route('catalog.index') }}" class="flex items-center gap-3">

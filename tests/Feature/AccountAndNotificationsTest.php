@@ -100,6 +100,8 @@ class AccountAndNotificationsTest extends TestCase
 
         $this->actingAs($buyer)
             ->get(route('buyer.dashboard'))
+            ->assertSee('data-sticky-header', false)
+            ->assertSee('sticky top-0 z-50', false)
             ->assertSee('Alamat Tersimpan')
             ->assertSee('data-header-cart', false)
             ->assertSeeInOrder(['data-header-cart', 'aria-label="Buka notifikasi"'], false);

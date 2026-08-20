@@ -13,39 +13,56 @@ class PaymentSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_store_encrypted_midtrans_credentials_from_panel(): void
+    public function test_admin_can_store_encrypted_paywuz_credentials_from_panel(): void
     {
-        config()->set('services.midtrans.server_key', null);
-        config()->set('services.midtrans.client_key', null);
+        config()->set('services.paywuz.sandbox_api_key', null);
+        config()->set('services.paywuz.production_api_key', null);
         $admin = User::factory()->admin()->create();
+        $sandboxKey = 'pk_sand_'.str_repeat('a', 32);
+        $productionKey = 'pk_live_'.str_repeat('b', 32);
 
         $this->actingAs($admin)->put(route('admin.settings.payment.update'), [
             'is_active' => '1',
             'environment' => 'sandbox',
-            'server_key' => 'Mid-server-panel-secret',
-            'client_key' => 'Mid-client-panel-key',
-            'merchant_id' => 'G123456789',
+            'sandbox_api_key' => $sandboxKey,
+            'production_api_key' => $productionKey,
             'current_password' => 'password',
         ])->assertRedirect();
 
         $setting = PaymentSetting::firstOrFail();
         $raw = DB::table('payment_settings')->first();
-        $this->assertSame('Mid-server-panel-secret', $setting->server_key);
-        $this->assertSame('Mid-client-panel-key', $setting->client_key);
-        $this->assertNotSame('Mid-server-panel-secret', $raw->server_key);
-        $this->assertNotSame('Mid-client-panel-key', $raw->client_key);
+        $this->assertSame('paywuz', $setting->provider);
+        $this->assertSame($sandboxKey, $setting->sandbox_api_key);
+        $this->assertSame($productionKey, $setting->production_api_key);
+        $this->assertNotSame($sandboxKey, $raw->sandbox_api_key);
+        $this->assertNotSame($productionKey, $raw->production_api_key);
         $this->assertSame($admin->id, $setting->updated_by);
 
         $configuration = app(PaymentConfiguration::class);
         $this->assertTrue($configuration->isReady());
-        $this->assertSame('G123456789', $configuration->merchantId());
+        $this->assertSame($sandboxKey, $configuration->apiKey());
 
         $this->get(route('admin.settings.payment.edit'))
             ->assertOk()
+            ->assertSee('Paywuz Payment Gateway')
             ->assertSee('Siap menerima pembayaran')
-            ->assertSee(route('payments.midtrans.notification'))
-            ->assertDontSee('Mid-server-panel-secret')
-            ->assertDontSee('Mid-client-panel-key');
+            ->assertSee(route('payments.paywuz.webhook'))
+            ->assertDontSee($sandboxKey)
+            ->assertDontSee($productionKey);
+    }
+
+    public function test_active_environment_requires_matching_paywuz_key(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->put(route('admin.settings.payment.update'), [
+            'is_active' => '1',
+            'environment' => 'production',
+            'production_api_key' => 'pk_sand_'.str_repeat('a', 32),
+            'current_password' => 'password',
+        ])->assertSessionHasErrors(['production_api_key']);
+
+        $this->assertDatabaseCount('payment_settings', 0);
     }
 
     public function test_payment_panel_requires_admin_password(): void
@@ -54,9 +71,8 @@ class PaymentSettingsTest extends TestCase
 
         $this->actingAs($admin)->put(route('admin.settings.payment.update'), [
             'is_active' => '1',
-            'environment' => 'production',
-            'server_key' => 'SB-Mid-server-wrong-environment',
-            'client_key' => 'SB-Mid-client-wrong-environment',
+            'environment' => 'sandbox',
+            'sandbox_api_key' => 'pk_sand_'.str_repeat('a', 32),
             'current_password' => 'wrong-password',
         ])->assertSessionHasErrors(['current_password']);
 

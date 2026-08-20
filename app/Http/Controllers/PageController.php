@@ -11,7 +11,7 @@ class PageController extends Controller
     {
         return $this->page('Tentang Toko', 'Identitas usaha', [
             ['title' => 'Toko kebutuhan sekolah tepercaya', 'paragraphs' => ['Toko Sipaduhok adalah toko mandiri yang menyediakan buku, alat tulis, atribut sekolah, dan kebutuhan belajar lainnya.', 'Seluruh katalog, transaksi, pembayaran, invoice, dukungan pelanggan, dan pengiriman dikelola langsung melalui toko ini.']],
-            ['title' => 'Model layanan', 'items' => ['Produk dijual dan dikelola langsung oleh Toko Sipaduhok.', 'Pembeli bertransaksi langsung dengan toko tanpa escrow atau saldo tertahan.', 'Pengiriman dilakukan oleh Kurir Toko dengan tarif yang ditampilkan saat checkout.', 'Bukti paket tiba diunggah oleh admin dan dapat dikonfirmasi pembeli.']],
+            ['title' => 'Model layanan', 'items' => ['Produk dijual dan dikelola langsung oleh Toko Sipaduhok.', 'Toko tidak mengoperasikan escrow atau saldo internal antar pengguna; pembayaran dan settlement diproses oleh Paywuz.', 'Pengiriman dilakukan oleh Kurir Toko dengan tarif yang ditampilkan saat checkout.', 'Bukti paket tiba diunggah oleh admin dan dapat dikonfirmasi pembeli.']],
         ]);
     }
 
@@ -26,8 +26,8 @@ class PageController extends Controller
     public function payment(): View
     {
         return $this->page('Cara Pembayaran', 'Pembayaran langsung', [
-            ['title' => 'Kanal pembayaran digital', 'paragraphs' => ['Saat membayar, pembeli memilih kanal yang tersedia langsung pada halaman payment gateway, seperti QRIS, transfer bank, e-wallet, atau kanal lain yang sedang aktif. Status pembayaran diperbarui otomatis melalui sistem gateway.']],
-            ['title' => 'Ketentuan pembayaran', 'items' => ['Nominal yang dibayar harus sama dengan total pada invoice.', 'Pesanan diproses setelah pembayaran dinyatakan lunas.', 'Toko tidak menggunakan escrow, wallet seller, atau penitipan dana antar pengguna.', 'Jika status belum berubah setelah pembayaran, gunakan tombol cek status atau hubungi admin dengan nomor invoice.']],
+            ['title' => 'Kanal pembayaran digital', 'paragraphs' => ['Saat checkout, pembeli memilih kanal Paywuz yang sedang aktif. Untuk Virtual Account, bank dipilih pada halaman pembayaran resmi Paywuz. Status pembayaran diperbarui otomatis melalui webhook aman.']],
+            ['title' => 'Ketentuan pembayaran', 'items' => ['Tagihan toko dan biaya kanal ditampilkan sebelum pembayaran diselesaikan.', 'Pesanan diproses setelah Paywuz menyatakan dana telah masuk ke saldo merchant.', 'Toko tidak menggunakan escrow, wallet seller, atau penitipan dana antar pengguna.', 'Jika status belum berubah setelah pembayaran, gunakan tombol cek status atau hubungi admin dengan nomor invoice.']],
         ]);
     }
 

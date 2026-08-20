@@ -46,15 +46,24 @@
                 <h2 class="font-black">Pembayaran</h2>
                 <dl class="mt-4 space-y-3 text-sm">
                     <div class="flex justify-between gap-4"><dt>Status</dt><dd class="font-bold">{{ $order->payment_status->label() }}</dd></div>
-                    <div class="flex justify-between gap-4"><dt>Metode</dt><dd class="font-bold">{{ $order->payment_method->label() }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt>Gateway</dt><dd class="font-bold">{{ ucfirst($order->payment_gateway) }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt>Kanal</dt><dd class="font-bold">{{ $order->gateway_payment_method ?: $order->payment_method->label() }}</dd></div>
+                    @if($order->gateway_settled_at && $order->payment_status !== App\Enums\PaymentStatus::Paid)<div class="rounded-lg bg-blue-50 p-3 text-xs leading-5 text-primary">Pembayaran telah dikonfirmasi gateway dan sedang menunggu settlement Paywuz.</div>@endif
                     <div><dt class="text-slate-500">Referensi</dt><dd class="mt-1 break-all font-mono text-xs">{{ $order->payment_reference ?: '-' }}</dd></div>
                 </dl>
 
-                @if($order->payment_gateway === 'midtrans' && ! in_array($order->payment_status, [App\Enums\PaymentStatus::Paid, App\Enums\PaymentStatus::Expired, App\Enums\PaymentStatus::Failed], true))
-                    <a href="{{ route('orders.payment', $order) }}" class="mt-5 block rounded-xl bg-primary px-4 py-3 text-center font-black text-white hover:bg-secondary">Bayar Sekarang</a>
-                    <form method="POST" action="{{ route('orders.sync-payment', $order) }}" class="mt-2" data-confirm="Sistem akan meminta status transaksi terbaru ke Midtrans." data-confirm-title="Cek status pembayaran?" data-confirm-button="Ya, cek status">@csrf
+                @if($order->payment_gateway === 'paywuz' && ! in_array($order->payment_status, [App\Enums\PaymentStatus::Paid, App\Enums\PaymentStatus::Expired, App\Enums\PaymentStatus::Failed], true))
+                    @unless($order->gateway_settled_at)
+                        <a href="{{ route('orders.payment', $order) }}" class="mt-5 block rounded-xl bg-primary px-4 py-3 text-center font-black text-white hover:bg-secondary">Bayar Sekarang</a>
+                    @endunless
+                    <form method="POST" action="{{ route('orders.sync-payment', $order) }}" class="mt-2" data-confirm="Sistem akan meminta status transaksi terbaru ke Paywuz." data-confirm-title="Cek status pembayaran?" data-confirm-button="Ya, cek status">@csrf
                         <button class="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700">Cek Status Pembayaran</button>
                     </form>
+                    @unless($order->gateway_settled_at)
+                        <form method="POST" action="{{ route('orders.cancel-payment', $order) }}" class="mt-2" data-confirm="Transaksi pending akan dibatalkan melalui Paywuz dan pesanan tidak dapat dibayar lagi." data-confirm-title="Batalkan pembayaran?" data-confirm-button="Ya, batalkan">@csrf
+                            <button class="w-full rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50">Batalkan Pembayaran</button>
+                        </form>
+                    @endunless
                 @elseif($order->payment_gateway === 'placeholder')
                     <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">Mode konfirmasi internal: admin toko mengonfirmasi pembayaran dari dashboard.</p>
                 @endif

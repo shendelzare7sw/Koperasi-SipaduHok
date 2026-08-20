@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
-            'payments/midtrans/notification',
+            'payments/paywuz/webhook',
         ]);
 
         $middleware->alias([

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('payment_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('provider')->default('midtrans')->unique();
+            $table->string('provider')->default('placeholder')->unique();
             $table->boolean('is_active')->default(false);
             $table->boolean('is_production')->default(false);
             $table->text('server_key')->nullable();

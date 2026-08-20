@@ -94,7 +94,7 @@
                         <a href="{{ route('admin.orders.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pesanan Masuk</a>
                         <a href="{{ route('admin.buyers.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Kelola Pembeli</span>@if($pendingIdentityCount > 0)<span class="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">{{ $pendingIdentityCount }}</span>@endif</a>
                         <a href="{{ route('admin.courier.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Kurir Toko</a>
-                        <a href="{{ route('admin.settings.payment.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pembayaran Midtrans</a>
+                        <a href="{{ route('admin.settings.payment.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pembayaran Paywuz</a>
                         <a href="{{ route('admin.settings.store.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Identitas Toko</a>
                         <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $unreadNotificationCount }}</span>@endif</a>
                         <a href="{{ route('account.profile.edit') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Profil Saya</a>

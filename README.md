@@ -9,7 +9,7 @@ Target produksi: `https://toko.sipaduhok.id`.
 - Laravel 13 / PHP 8.3
 - Blade + Tailwind CSS 4 + Alpine.js + Vite
 - MySQL untuk development dan produksi; SQLite in-memory hanya untuk test otomatis
-- Midtrans Snap tersedia melalui adapter `PaymentGateway`; mode `placeholder` tetap tersedia untuk development
+- Paywuz REST API tersedia melalui adapter `PaymentGateway`; mode `placeholder` tetap tersedia untuk development
 - Tidak memakai RajaOngkir, Komerce, ekspedisi, atau API pengiriman lain
 
 ## Role akun
@@ -42,7 +42,7 @@ SESSION_ENCRYPT=true
 
 Jika kedua key Turnstile kosong, pemeriksaan dilewati agar development lokal tetap dapat dijalankan. Jika hanya salah satu key terisi, autentikasi akan gagal tertutup sampai konfigurasi diperbaiki. Setelah mengubah `.env` di server, jalankan `php artisan optimize:clear` lalu `php artisan config:cache`.
 
-OTP memerlukan email sungguhan di production. Ubah `MAIL_MAILER=log` ke SMTP/provider transaksi yang digunakan dan isi `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, serta `MAIL_FROM_ADDRESS`. Jangan commit secret Turnstile, SMTP, atau Midtrans.
+OTP memerlukan email sungguhan di production. Ubah `MAIL_MAILER=log` ke SMTP/provider transaksi yang digunakan dan isi `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, serta `MAIL_FROM_ADDRESS`. Jangan commit secret Turnstile, SMTP, atau Paywuz.
 
 ## Pengiriman
 
@@ -74,7 +74,7 @@ Semua perpindahan status dicatat dalam `order_status_histories`.
 - Identitas/kontak publik toko dapat diatur melalui panel admin
 - Arsip produk dengan pemulihan dan hapus permanen; hapus permanen sekaligus membersihkan semua file galeri produk
 - Kelola pembeli dengan filter status akun/KTP, pemeriksaan KTP, riwayat pesanan, serta aktif/nonaktif akun
-- Panel konfigurasi Midtrans dengan penyimpanan key terenkripsi dan konfirmasi kata sandi admin
+- Panel konfigurasi Paywuz dengan key Sandbox/Production terenkripsi dan konfirmasi kata sandi admin
 - Landing katalog ringkas dengan pencarian dan shortcut ikon kategori; halaman hasil memakai sortir terpisah, sidebar filter desktop, serta drawer filter kiri pada mobile
 
 Hasil audit serta keputusan adaptasi fitur dari DigiRack dicatat di [`docs/digirack-feature-reconciliation.md`](docs/digirack-feature-reconciliation.md).
@@ -110,27 +110,28 @@ Untuk produksi, isi `ADMIN_EMAIL` dan `ADMIN_PASSWORD` di `.env` sebelum menjala
 
 Mode bawaan development adalah `placeholder`: checkout membuat referensi `DEMO-*`, lalu admin menekan **Konfirmasi Pembayaran Internal** agar stok berkurang dan order mulai diproses.
 
-Untuk mengaktifkan Midtrans Sandbox:
+Untuk mengaktifkan Paywuz Sandbox melalui `.env`:
 
 ```dotenv
-PAYMENT_GATEWAY=midtrans
-MIDTRANS_SERVER_KEY=SB-Mid-server-...
-MIDTRANS_CLIENT_KEY=SB-Mid-client-...
-MIDTRANS_MERCHANT_ID=G123456789
-MIDTRANS_IS_PRODUCTION=false
+PAYMENT_GATEWAY=paywuz
+PAYWUZ_SANDBOX_API_KEY=pk_sand_...
+PAYWUZ_PRODUCTION_API_KEY=pk_live_...
+PAYWUZ_ENVIRONMENT=sandbox
+PAYWUZ_BASE_URL=https://api.paywuz.id/v1
+PAYWUZ_EXPIRY_MINUTES=720
 ```
 
-Admin juga dapat membuka **Admin → Pembayaran** untuk mengatur konfigurasi yang sama melalui UI. Nilai dari panel menjadi override `.env`; Server Key dan Client Key dienkripsi memakai `APP_KEY`, tidak ditampilkan kembali, dan perubahan memerlukan kata sandi admin. Biarkan kolom key kosong saat menyimpan jika ingin mempertahankan key yang sudah tersimpan atau fallback dari `.env`.
+Admin juga dapat membuka **Admin → Pembayaran** untuk mengatur konfigurasi yang sama melalui UI. Nilai panel menjadi override `.env`; API key Sandbox dan Production dienkripsi memakai `APP_KEY`, tidak ditampilkan kembali, dan perubahan memerlukan kata sandi admin. Biarkan kolom key kosong bila key tersimpan tidak ingin diganti.
 
-Mode `placeholder` hanya dapat checkout pada environment `local` atau `testing`. Pada production, checkout terkunci sampai konfigurasi Midtrans lengkap dan diaktifkan.
+Mode `placeholder` hanya dapat checkout pada environment `local` atau `testing`. Pada production, checkout terkunci sampai konfigurasi Paywuz lengkap dan diaktifkan.
 
-Atur Payment Notification URL di dashboard Midtrans ke:
+Atur Webhook URL pada proyek Sandbox dan Production di dashboard Paywuz ke:
 
 ```text
-https://toko.sipaduhok.id/payments/midtrans/notification
+https://toko.sipaduhok.id/payments/paywuz/webhook
 ```
 
-Setiap order toko menjadi satu transaksi Midtrans. Callback diverifikasi memakai signature SHA-512, nominal callback dicocokkan dengan total order, dan pengurangan stok bersifat idempoten sehingga callback berulang tidak mengurangi stok dua kali. Redirect browser hanya mengubah tampilan; status lunas tetap berasal dari callback server-to-server atau sinkronisasi status ke Midtrans.
+Setiap order toko menjadi satu transaksi Paywuz dengan `orderId` invoice yang idempoten. Webhook diverifikasi dari raw body memakai `X-Paywuz-Signature` HMAC-SHA256, `X-Paywuz-Delivery` dideduplikasi, referensi serta nominal dicocokkan, dan stok hanya berkurang sekali setelah event `transaction.paid`. Event `transaction.settlement` tetap dianggap menunggu settlement dan belum memulai pemenuhan order.
 
 Website dan pengajuan merchant harus menampilkan identitas badan usaha/perorangan, hubungan kemitraan, katalog, harga, proses pemesanan, kebijakan, dan barang yang benar-benar dijalankan. Pemisahan aplikasi tidak boleh dipakai untuk menyamarkan entitas atau menghindari persyaratan onboarding payment gateway.
 
@@ -143,7 +144,7 @@ vendor\bin\pint --test
 npm run build
 ```
 
-Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, verifikasi KTP privat, aktivasi/nonaktivasi pembeli, arsip/pulihkan/hapus permanen produk, panel Midtrans terenkripsi, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas toko, Beli Langsung, checkout item terpilih, satu kurir, callback Midtrans tervalidasi dan idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
+Test mencakup registrasi OTP, pemulihan akun OTP, validasi server-side Turnstile, profil/keamanan, notifikasi, wishlist, alamat checkout, verifikasi KTP privat, aktivasi/nonaktivasi pembeli, arsip/pulihkan/hapus permanen produk, panel Paywuz terenkripsi, galeri/preview produk, import Excel beserta template contoh, format input rupiah, ulasan terverifikasi, halaman legal, identitas toko, Beli Langsung, checkout item terpilih, satu kurir, transaksi dan webhook Paywuz tervalidasi serta idempoten, workflow pengiriman, bukti tiba, invoice, serta otorisasi lintas akun.
 
 ## Struktur fitur utama
 

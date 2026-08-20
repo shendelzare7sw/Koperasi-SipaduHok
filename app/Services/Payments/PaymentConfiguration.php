@@ -16,43 +16,50 @@ class PaymentConfiguration
         $setting = $this->setting();
 
         if ($setting) {
-            return $setting->is_active ? 'midtrans' : 'placeholder';
+            return $setting->is_active ? 'paywuz' : 'placeholder';
         }
 
         return (string) config('services.payment_gateway', 'placeholder');
     }
 
-    public function serverKey(): ?string
+    public function environment(): string
     {
-        return $this->databaseValue('server_key') ?: config('services.midtrans.server_key');
+        return $this->isProduction() ? 'production' : 'sandbox';
     }
 
-    public function clientKey(): ?string
+    public function apiKey(?string $environment = null): ?string
     {
-        return $this->databaseValue('client_key') ?: config('services.midtrans.client_key');
+        $environment ??= $this->environment();
+
+        return $environment === 'production'
+            ? ($this->databaseValue('production_api_key') ?: config('services.paywuz.production_api_key'))
+            : ($this->databaseValue('sandbox_api_key') ?: config('services.paywuz.sandbox_api_key'));
     }
 
-    public function merchantId(): ?string
+    /** @return list<string> */
+    public function apiKeys(): array
     {
-        return $this->databaseValue('merchant_id') ?: config('services.midtrans.merchant_id');
+        return collect([$this->apiKey('sandbox'), $this->apiKey('production')])
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function isProduction(): bool
     {
         return $this->setting()?->is_production
-            ?? (bool) config('services.midtrans.is_production', false);
+            ?? config('services.paywuz.environment', 'sandbox') === 'production';
     }
 
-    public function isMidtransEnabled(): bool
+    public function isPaywuzEnabled(): bool
     {
-        return $this->gateway() === 'midtrans';
+        return $this->gateway() === 'paywuz';
     }
 
     public function isReady(): bool
     {
-        return $this->isMidtransEnabled()
-            && filled($this->serverKey())
-            && filled($this->clientKey());
+        return $this->isPaywuzEnabled() && filled($this->apiKey());
     }
 
     public function isCheckoutReady(): bool
@@ -62,11 +69,14 @@ class PaymentConfiguration
             : $this->isReady();
     }
 
-    public function snapScriptUrl(): string
+    public function baseUrl(): string
     {
-        return $this->isProduction()
-            ? 'https://app.midtrans.com/snap/snap.js'
-            : 'https://app.sandbox.midtrans.com/snap/snap.js';
+        return rtrim((string) config('services.paywuz.base_url', 'https://api.paywuz.id/v1'), '/');
+    }
+
+    public function expiryMinutes(): int
+    {
+        return max(5, min((int) config('services.paywuz.expiry_minutes', 720), 10080));
     }
 
     /** @return array<string, bool|string|null> */
@@ -76,16 +86,14 @@ class PaymentConfiguration
 
         return [
             'gateway' => $this->gateway(),
-            'enabled' => $this->isMidtransEnabled(),
+            'enabled' => $this->isPaywuzEnabled(),
             'ready' => $this->isReady(),
             'checkout_ready' => $this->isCheckoutReady(),
-            'environment' => $this->isProduction() ? 'production' : 'sandbox',
-            'server_key_configured' => filled($this->serverKey()),
-            'client_key_configured' => filled($this->clientKey()),
-            'merchant_id' => $this->merchantId(),
+            'environment' => $this->environment(),
+            'api_key_configured' => filled($this->apiKey()),
+            'sandbox_api_key_configured' => filled($this->apiKey('sandbox')),
+            'production_api_key_configured' => filled($this->apiKey('production')),
             'source' => $setting ? 'panel_admin' : 'environment',
-            'database_server_key' => $setting ? filled($this->databaseValue('server_key')) : false,
-            'database_client_key' => $setting ? filled($this->databaseValue('client_key')) : false,
         ];
     }
 
@@ -104,7 +112,7 @@ class PaymentConfiguration
         $this->loaded = true;
 
         try {
-            $this->setting = PaymentSetting::query()->where('provider', 'midtrans')->first();
+            $this->setting = PaymentSetting::query()->where('provider', 'paywuz')->first();
         } catch (Throwable) {
             $this->setting = null;
         }

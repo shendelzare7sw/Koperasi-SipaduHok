@@ -11,9 +11,8 @@ class PaymentSetting extends Model
         'provider',
         'is_active',
         'is_production',
-        'server_key',
-        'client_key',
-        'merchant_id',
+        'sandbox_api_key',
+        'production_api_key',
         'updated_by',
     ];
 
@@ -22,8 +21,8 @@ class PaymentSetting extends Model
         return [
             'is_active' => 'boolean',
             'is_production' => 'boolean',
-            'server_key' => 'encrypted',
-            'client_key' => 'encrypted',
+            'sandbox_api_key' => 'encrypted',
+            'production_api_key' => 'encrypted',
         ];
     }
 

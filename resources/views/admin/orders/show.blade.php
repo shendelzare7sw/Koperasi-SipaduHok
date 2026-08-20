@@ -32,7 +32,7 @@
                 @if($order->payment_gateway === 'placeholder')
                     <form method="POST" action="{{ route('admin.orders.confirm-payment', $order) }}" class="mt-4" data-confirm="Pembayaran akan ditandai lunas dan stok produk langsung dikurangi." data-confirm-title="Konfirmasi pembayaran?" data-confirm-icon="warning" data-confirm-button="Ya, konfirmasi">@csrf<button class="w-full rounded-xl bg-primary px-4 py-3 font-bold text-white">Konfirmasi Pembayaran Internal</button></form>
                 @else
-                    <div class="mt-4 rounded-xl border border-slate-700 p-4 text-xs leading-5 text-slate-300">Pembayaran Midtrans dikonfirmasi otomatis melalui notification callback. Admin tidak perlu menandai lunas secara manual.</div>
+                    <div class="mt-4 rounded-xl border border-slate-700 p-4 text-xs leading-5 text-slate-300">Pembayaran Paywuz dikonfirmasi otomatis melalui webhook bertanda tangan. Admin tidak perlu menandai lunas secara manual.</div>
                 @endif
             @elseif($order->status === App\Enums\OrderStatus::Processing)
                 <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" class="mt-5 space-y-3" data-confirm="Pembeli akan melihat status pesanan siap dikirim." data-confirm-title="Tandai siap dikirim?" data-confirm-button="Ya, ubah status">@csrf @method('PATCH')<input type="hidden" name="status" value="ready"><textarea name="note" rows="2" placeholder="Catatan opsional" class="w-full rounded-xl border border-white/20 bg-primary-dark px-4 py-3 text-sm text-white"></textarea><button class="w-full rounded-xl bg-accent-yellow px-4 py-3 font-bold text-slate-900">Tandai Siap Dikirim</button></form>

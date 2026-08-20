@@ -53,7 +53,7 @@ class OrderController extends Controller
 
     public function confirmPayment(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
     {
-        abort_unless($order->payment_gateway === 'placeholder', 422, 'Pembayaran Midtrans harus dikonfirmasi melalui callback gateway.');
+        abort_unless($order->payment_gateway === 'placeholder', 422, 'Pembayaran Paywuz harus dikonfirmasi melalui webhook gateway.');
 
         $workflow->confirmPayment($order, $request->user());
 

@@ -6,9 +6,9 @@ use App\Contracts\PaymentGateway;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
-use App\Services\MidtransStatusService;
 use App\Services\OrderWorkflowService;
 use App\Services\Payments\PaymentConfiguration;
+use App\Services\PaywuzStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,45 +52,71 @@ class OrderController extends Controller
             return redirect()->route('orders.show', $order)->with('success', 'Pembayaran pesanan sudah diterima.');
         }
 
-        if ($order->payment_gateway !== 'midtrans' || ! $payments->isMidtransEnabled()) {
-            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Pembayaran Midtrans tidak aktif untuk pesanan ini.']);
+        if ($order->payment_gateway !== 'paywuz' || ! $payments->isPaywuzEnabled()) {
+            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Pembayaran Paywuz tidak aktif untuk pesanan ini.']);
         }
 
-        if (blank($order->payment_token)) {
+        if (in_array($order->payment_status, [PaymentStatus::Failed, PaymentStatus::Expired], true)) {
+            return redirect()->route('orders.show', $order)->withErrors(['payment' => 'Transaksi Paywuz ini sudah gagal, dibatalkan, atau kedaluwarsa.']);
+        }
+
+        if (blank($order->payment_url)) {
             try {
-                $transaction = $gateway->createTransaction($order);
+                $transaction = $gateway->createTransaction($order, (string) $order->gateway_payment_method);
                 $order->update([
                     'payment_reference' => $transaction['reference'],
-                    'payment_token' => $transaction['token'],
+                    'payment_url' => $transaction['payment_url'],
+                    'gateway_total' => $transaction['total_payment'],
+                    'payment_expires_at' => $transaction['expires_at'],
                     'payment_status' => PaymentStatus::from($transaction['status']),
                 ]);
             } catch (Throwable $exception) {
                 report($exception);
 
                 return redirect()->route('orders.show', $order)->withErrors([
-                    'payment' => 'Kanal Midtrans belum dapat dibuka. Silakan coba beberapa saat lagi.',
+                    'payment' => 'Kanal Paywuz belum dapat dibuka. Silakan coba beberapa saat lagi.',
                 ]);
             }
         }
 
-        return view('orders.payment', [
-            'order' => $order,
-            'midtransClientKey' => $payments->clientKey(),
-            'snapScriptUrl' => $payments->snapScriptUrl(),
-        ]);
+        return view('orders.payment', ['order' => $order->fresh()]);
     }
 
-    public function syncPayment(Request $request, Order $order, MidtransStatusService $midtrans): RedirectResponse
+    public function syncPayment(Request $request, Order $order, PaywuzStatusService $paywuz): RedirectResponse
     {
         $this->authorizeOwner($request, $order);
-        abort_unless($order->payment_gateway === 'midtrans', 422);
+        abort_unless($order->payment_gateway === 'paywuz', 422);
 
-        $changed = $midtrans->syncByReference($order->payment_reference ?: $order->invoice_number);
+        $changed = $paywuz->sync($order);
 
         return back()->with(
             'success',
-            $changed ? 'Status pembayaran berhasil diperbarui.' : 'Belum ada perubahan status dari Midtrans.',
+            $changed ? 'Status pembayaran berhasil diperbarui.' : 'Belum ada perubahan status dari Paywuz.',
         );
+    }
+
+    public function cancelPayment(Request $request, Order $order, PaywuzStatusService $paywuz): RedirectResponse
+    {
+        $this->authorizeOwner($request, $order);
+        abort_unless($order->payment_gateway === 'paywuz', 422);
+
+        if ($order->payment_status === PaymentStatus::Paid) {
+            return back()->withErrors(['payment' => 'Pembayaran yang sudah lunas tidak dapat dibatalkan.']);
+        }
+
+        if ($order->gateway_settled_at) {
+            return back()->withErrors(['payment' => 'Pembayaran yang sudah dikonfirmasi gateway tidak dapat dibatalkan melalui aplikasi.']);
+        }
+
+        try {
+            $paywuz->cancel($order);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors(['payment' => 'Transaksi belum dapat dibatalkan melalui Paywuz.']);
+        }
+
+        return back()->with('success', 'Transaksi pembayaran berhasil dibatalkan.');
     }
 
     public function confirmReceived(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse

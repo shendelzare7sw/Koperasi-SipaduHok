@@ -7,82 +7,95 @@ use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
-use App\Services\Payments\MidtransPaymentGateway;
+use App\Services\Payments\PaywuzPaymentGateway;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Midtrans\Transaction;
 use Throwable;
 
-class MidtransStatusService
+class PaywuzStatusService
 {
     public function __construct(
-        private readonly MidtransPaymentGateway $gateway,
+        private readonly PaywuzPaymentGateway $gateway,
         private readonly OrderNotificationService $notifications,
     ) {}
 
-    public function syncByReference(string $reference): bool
+    public function sync(Order $order): bool
     {
         try {
-            $this->gateway->boot();
-            $status = Transaction::status($reference);
+            $transaction = $this->gateway->fetchTransaction($order);
         } catch (Throwable $exception) {
-            Log::warning('Sinkronisasi status Midtrans gagal.', [
-                'reference' => $reference,
+            Log::warning('Sinkronisasi status Paywuz gagal.', [
+                'order_id' => $order->id,
                 'message' => $exception->getMessage(),
             ]);
 
             return false;
         }
 
-        $order = Order::query()
-            ->where('payment_reference', $reference)
-            ->orWhere('invoice_number', $reference)
-            ->first();
-
-        if (! $order || empty($status->transaction_status)) {
-            return false;
-        }
-
-        return $this->applyTransactionStatus(
-            $order,
-            $status->transaction_status,
-            $status->fraud_status ?? null,
-        );
+        return $this->applyStatus($order, (string) $transaction['status'], $transaction);
     }
 
-    public function applyTransactionStatus(Order $order, string $transactionStatus, ?string $fraudStatus = null): bool
+    public function cancel(Order $order): bool
+    {
+        $transaction = $this->gateway->cancelTransaction($order);
+
+        return $this->applyStatus($order, (string) $transaction['status'], $transaction);
+    }
+
+    /** @param array<string, mixed> $transaction */
+    public function applyStatus(Order $order, string $status, array $transaction = []): bool
     {
         $notificationType = null;
-        $changed = DB::transaction(function () use ($order, $transactionStatus, $fraudStatus, &$notificationType) {
+        $changed = DB::transaction(function () use ($order, $status, $transaction, &$notificationType) {
             $lockedOrder = Order::query()->with('items')->lockForUpdate()->find($order->id);
 
-            if (! $lockedOrder) {
+            if (! $lockedOrder || $lockedOrder->payment_gateway !== 'paywuz') {
                 return false;
             }
 
-            if ($this->isSuccessful($transactionStatus, $fraudStatus)) {
+            if ($status === 'success') {
                 $changed = $this->markPaid($lockedOrder);
                 $notificationType = $changed ? 'paid' : null;
 
                 return $changed;
             }
 
-            if (in_array($transactionStatus, ['cancel', 'deny', 'expire', 'failure'], true)) {
-                $changed = $this->markFailed($lockedOrder, $transactionStatus);
+            if (in_array($status, ['failed', 'cancelled', 'expired'], true)) {
+                $changed = $this->markFailed($lockedOrder, $status);
                 $notificationType = $changed ? 'failed' : null;
 
                 return $changed;
             }
 
-            if ($transactionStatus === 'pending'
-                || ($transactionStatus === 'capture' && $fraudStatus === 'challenge')) {
-                if ($lockedOrder->payment_status !== PaymentStatus::Paid
-                    && $lockedOrder->payment_status !== PaymentStatus::Pending) {
-                    $lockedOrder->update(['payment_status' => PaymentStatus::Pending]);
+            $updates = [];
+            if ($lockedOrder->payment_status === PaymentStatus::Unpaid) {
+                $updates['payment_status'] = PaymentStatus::Pending;
+            }
 
-                    return true;
-                }
+            if ($status === 'settlement' && ! $lockedOrder->gateway_settled_at) {
+                $updates['gateway_settled_at'] = now();
+                $this->record(
+                    $lockedOrder,
+                    $lockedOrder->status,
+                    $lockedOrder->status,
+                    'paywuz_payment_settled',
+                    'Pembayaran dikonfirmasi gateway dan sedang menunggu settlement Paywuz.',
+                );
+            }
+
+            if (filled($transaction['paymentMethod'] ?? null)) {
+                $updates['gateway_payment_method'] = (string) $transaction['paymentMethod'];
+            }
+
+            if (filled($transaction['totalPayment'] ?? null)) {
+                $updates['gateway_total'] = max($lockedOrder->total, (int) $transaction['totalPayment']);
+            }
+
+            if ($updates) {
+                $lockedOrder->update($updates);
+
+                return true;
             }
 
             return false;
@@ -91,7 +104,7 @@ class MidtransStatusService
         if ($changed && $notificationType) {
             $updatedOrder = $order->fresh(['buyer']);
             $notificationType === 'paid'
-                ? $this->notifications->paymentConfirmed($updatedOrder, true)
+                ? $this->notifications->paymentConfirmed($updatedOrder, 'Paywuz')
                 : $this->notifications->paymentFailed($updatedOrder);
         }
 
@@ -136,32 +149,30 @@ class MidtransStatusService
             $order,
             $from,
             OrderStatus::Processing,
-            'midtrans_payment_confirmed',
-            'Pembayaran dikonfirmasi otomatis oleh Midtrans.',
+            'paywuz_payment_confirmed',
+            'Dana dikonfirmasi masuk ke saldo merchant oleh Paywuz.',
         );
 
         return true;
     }
 
-    private function markFailed(Order $order, string $transactionStatus): bool
+    private function markFailed(Order $order, string $status): bool
     {
         if ($order->payment_status === PaymentStatus::Paid) {
             return false;
         }
 
-        $targetPaymentStatus = $transactionStatus === 'expire'
-            ? PaymentStatus::Expired
-            : PaymentStatus::Failed;
+        $targetPaymentStatus = $status === 'expired' ? PaymentStatus::Expired : PaymentStatus::Failed;
 
         if ($order->status === OrderStatus::Cancelled && $order->payment_status === $targetPaymentStatus) {
             return false;
         }
 
         $from = $order->status;
-        $note = match ($transactionStatus) {
-            'expire' => 'Pembayaran kedaluwarsa di Midtrans.',
-            'cancel' => 'Pembayaran dibatalkan di Midtrans.',
-            default => 'Pembayaran gagal atau ditolak oleh Midtrans.',
+        $note = match ($status) {
+            'expired' => 'Pembayaran kedaluwarsa di Paywuz.',
+            'cancelled' => 'Pembayaran dibatalkan melalui Paywuz.',
+            default => 'Pembayaran gagal atau ditolak oleh Paywuz.',
         };
 
         $order->update([
@@ -169,15 +180,9 @@ class MidtransStatusService
             'status' => OrderStatus::Cancelled,
         ]);
 
-        $this->record($order, $from, OrderStatus::Cancelled, 'midtrans_payment_failed', $note);
+        $this->record($order, $from, OrderStatus::Cancelled, 'paywuz_payment_failed', $note);
 
         return true;
-    }
-
-    private function isSuccessful(string $transactionStatus, ?string $fraudStatus): bool
-    {
-        return $transactionStatus === 'settlement'
-            || ($transactionStatus === 'capture' && in_array($fraudStatus, [null, 'accept'], true));
     }
 
     private function record(Order $order, OrderStatus $from, OrderStatus $to, string $action, string $note): void

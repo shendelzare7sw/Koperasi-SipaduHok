@@ -20,10 +20,10 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\IdentityDocumentController;
 use App\Http\Controllers\IdentityVerificationController;
-use App\Http\Controllers\MidtransNotificationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaywuzWebhookController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
@@ -37,7 +37,7 @@ Route::get('/kebijakan-pengiriman', [PageController::class, 'shipping'])->name('
 Route::get('/kebijakan-pengembalian', [PageController::class, 'returns'])->name('pages.returns');
 Route::get('/kebijakan-privasi', [PageController::class, 'privacy'])->name('pages.privacy');
 Route::get('/syarat-ketentuan', [PageController::class, 'terms'])->name('pages.terms');
-Route::post('/payments/midtrans/notification', MidtransNotificationController::class)->name('payments.midtrans.notification');
+Route::post('/payments/paywuz/webhook', PaywuzWebhookController::class)->name('payments.paywuz.webhook');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
@@ -92,6 +92,7 @@ Route::middleware(['auth', 'active', 'role:pembeli'])->group(function () {
     Route::get('/pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/pesanan/{order}/pembayaran', [OrderController::class, 'payment'])->name('orders.payment');
     Route::post('/pesanan/{order}/sinkronkan-pembayaran', [OrderController::class, 'syncPayment'])->name('orders.sync-payment');
+    Route::post('/pesanan/{order}/batalkan-pembayaran', [OrderController::class, 'cancelPayment'])->name('orders.cancel-payment');
     Route::get('/pesanan/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::post('/pesanan/{order}/konfirmasi-terima', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
     Route::get('/pesanan/item/{orderItem}/ulasan', [ReviewController::class, 'edit'])->name('reviews.edit');

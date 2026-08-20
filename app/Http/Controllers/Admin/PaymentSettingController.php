@@ -17,7 +17,7 @@ class PaymentSettingController extends Controller
     {
         return view('admin.settings.payment', [
             'status' => $payments->status(),
-            'callbackUrl' => route('payments.midtrans.notification'),
+            'callbackUrl' => route('payments.paywuz.webhook'),
         ]);
     }
 
@@ -26,45 +26,42 @@ class PaymentSettingController extends Controller
         $validated = $request->validate([
             'is_active' => ['required', 'boolean'],
             'environment' => ['required', 'in:sandbox,production'],
-            'server_key' => ['nullable', 'string', 'max:255'],
-            'client_key' => ['nullable', 'string', 'max:255'],
-            'merchant_id' => ['nullable', 'string', 'max:100'],
+            'sandbox_api_key' => ['nullable', 'string', 'max:255'],
+            'production_api_key' => ['nullable', 'string', 'max:255'],
             'current_password' => ['required', 'current_password'],
         ], [
             'current_password.current_password' => 'Kata sandi admin tidak sesuai.',
         ]);
 
-        $setting = PaymentSetting::query()->firstOrNew(['provider' => 'midtrans']);
-        $serverKey = filled($validated['server_key'] ?? null)
-            ? trim($validated['server_key'])
-            : ($setting->server_key ?: config('services.midtrans.server_key'));
-        $clientKey = filled($validated['client_key'] ?? null)
-            ? trim($validated['client_key'])
-            : ($setting->client_key ?: config('services.midtrans.client_key'));
+        $setting = PaymentSetting::query()->firstOrNew(['provider' => 'paywuz']);
+        $sandboxApiKey = filled($validated['sandbox_api_key'] ?? null)
+            ? trim($validated['sandbox_api_key'])
+            : ($setting->sandbox_api_key ?: config('services.paywuz.sandbox_api_key'));
+        $productionApiKey = filled($validated['production_api_key'] ?? null)
+            ? trim($validated['production_api_key'])
+            : ($setting->production_api_key ?: config('services.paywuz.production_api_key'));
         $isProduction = $validated['environment'] === 'production';
 
         $this->validateCredentials(
             $request->boolean('is_active'),
-            $serverKey,
-            $clientKey,
+            $isProduction,
+            $sandboxApiKey,
+            $productionApiKey,
         );
 
         DB::transaction(function () use ($request, $setting, $validated, $isProduction) {
             $setting->fill([
                 'is_active' => $request->boolean('is_active'),
                 'is_production' => $isProduction,
-                'merchant_id' => filled($validated['merchant_id'] ?? null)
-                    ? trim($validated['merchant_id'])
-                    : null,
                 'updated_by' => $request->user()->id,
             ]);
 
-            if (filled($validated['server_key'] ?? null)) {
-                $setting->server_key = trim($validated['server_key']);
+            if (filled($validated['sandbox_api_key'] ?? null)) {
+                $setting->sandbox_api_key = trim($validated['sandbox_api_key']);
             }
 
-            if (filled($validated['client_key'] ?? null)) {
-                $setting->client_key = trim($validated['client_key']);
+            if (filled($validated['production_api_key'] ?? null)) {
+                $setting->production_api_key = trim($validated['production_api_key']);
             }
 
             $setting->save();
@@ -72,22 +69,27 @@ class PaymentSettingController extends Controller
 
         $payments->reset();
 
-        return back()->with('success', 'Konfigurasi Midtrans berhasil diperbarui.');
+        return back()->with('success', 'Konfigurasi Paywuz berhasil diperbarui.');
     }
 
     private function validateCredentials(
         bool $isActive,
-        ?string $serverKey,
-        ?string $clientKey,
+        bool $isProduction,
+        ?string $sandboxApiKey,
+        ?string $productionApiKey,
     ): void {
         $errors = [];
 
-        if ($isActive && blank($serverKey)) {
-            $errors['server_key'] = 'Server Key wajib tersedia sebelum Midtrans diaktifkan.';
+        $activeKey = $isProduction ? $productionApiKey : $sandboxApiKey;
+        $field = $isProduction ? 'production_api_key' : 'sandbox_api_key';
+        $prefix = $isProduction ? 'pk_live_' : 'pk_sand_';
+
+        if ($isActive && blank($activeKey)) {
+            $errors[$field] = 'API key untuk environment aktif wajib tersedia sebelum Paywuz diaktifkan.';
         }
 
-        if ($isActive && blank($clientKey)) {
-            $errors['client_key'] = 'Client Key wajib tersedia sebelum Midtrans diaktifkan.';
+        if ($isActive && filled($activeKey) && ! preg_match('/^'.preg_quote($prefix, '/').'[a-f0-9]{32}$/i', $activeKey)) {
+            $errors[$field] = "API key environment ini harus berformat {$prefix} diikuti 32 karakter heksadesimal.";
         }
 
         if ($errors) {

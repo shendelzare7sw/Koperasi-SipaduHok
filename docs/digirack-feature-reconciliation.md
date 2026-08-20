@@ -24,7 +24,7 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 | Arsip produk | Produk memakai soft delete, tersedia menu Arsip Produk, pencarian, pemulihan, dan hapus permanen beserta file galeri. |
 | Kelola pengguna | Disederhanakan menjadi Kelola Pembeli: pencarian, filter status akun/KTP, detail akun, alamat, transaksi, nonaktifkan/aktifkan kembali, dan pencabutan sesi saat dinonaktifkan. |
 | Verifikasi identitas seller | Dialihkan menjadi verifikasi identitas pembeli sebelum checkout. Nama legal dan NIK dienkripsi, hash NIK mencegah satu NIK dipakai lintas akun, foto KTP disimpan di disk privat, dan admin menyetujui/menolak disertai catatan. |
-| Pengaturan Midtrans | Panel admin khusus mengatur aktivasi, Sandbox/Production, Server Key, Client Key, dan Merchant ID. Key terenkripsi, tidak ditampilkan ulang, perubahan wajib dikonfirmasi dengan kata sandi admin, dan format key divalidasi terhadap environment. |
+| Pengaturan payment gateway | Panel admin mengatur Paywuz Sandbox/Production beserta API key terpisah. Key terenkripsi, tidak ditampilkan ulang, perubahan wajib dikonfirmasi dengan kata sandi admin, dan format key divalidasi terhadap environment. |
 | Status pengguna | Admin dapat menonaktifkan akun pembeli. Login berikutnya ditolak dan sesi yang sedang aktif dicabut. |
 | Laporan seller | Dipadatkan menjadi laporan penjualan toko berdasarkan periode, omzet selesai, biaya kurir, jumlah barang, serta produk terlaris. |
 
@@ -34,17 +34,17 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 |---|---|
 | Role seller dan role switcher | Admin toko adalah satu-satunya seller. |
 | Store onboarding/verifikasi seller | Tidak ada seller eksternal. |
-| Escrow, wallet seller, payout, dan Midtrans IRIS | Pembayaran langsung masuk ke entitas toko. |
+| Escrow, wallet seller, dan payout marketplace | Pembayaran langsung masuk ke entitas toko melalui Paywuz. |
 | RajaOngkir/Komerce dan ekspedisi reguler | Pengiriman hanya memakai satu Kurir Toko dengan tarif admin. |
 | Multi-store checkout dan storefront seller | Hanya ada satu toko mandiri. |
 | Fee marketplace dan moderasi produk seller | Tidak relevan pada model satu penjual. |
 | Flash sale dan banner marketplace | Tidak termasuk kebutuhan inti saat ini; dapat ditambahkan setelah katalog operasional stabil. |
-| Pembatalan otomatis transaksi Midtrans | Membatalkan transaksi berbayar memerlukan aturan refund dan sinkronisasi gateway agar tidak menghasilkan status uang yang keliru. Saat ini pembeli diarahkan menghubungi admin sesuai kebijakan publik. |
+| Refund otomatis transaksi lunas | Refund memerlukan prosedur operasional tersendiri. Pembatalan Paywuz hanya diterapkan pada transaksi yang masih pending. |
 | Retur otomatis dan refund gateway | Memerlukan prosedur operasional serta keputusan refund toko; halaman kebijakan dan kontak sudah disiapkan terlebih dahulu. |
 | Auto-complete pesanan | Belum diaktifkan karena alur yang diminta mewajibkan konfirmasi internal pembeli setelah admin mengunggah bukti tiba. |
 | Recovery admin tersembunyi dengan security question/PIN | Pola ini lebih mudah disalahgunakan dan tidak memberi jaminan kepemilikan kanal. Sistem toko memakai OTP email, rate limit, Turnstile, dan pencabutan sesi. |
 | Penyimpanan dokumen identitas pada disk publik | Foto KTP merupakan data sensitif. Implementasi toko menyimpannya di `storage/app/private` dan menyajikannya hanya melalui route terautentikasi milik pembeli/admin dengan header `no-store`. |
-| Kredensial gateway dalam setting plaintext | Server/Client Key toko memakai encrypted cast Laravel dan tidak pernah dikirim kembali ke HTML panel admin. |
+| Kredensial gateway dalam setting plaintext | API key Paywuz memakai encrypted cast Laravel dan tidak pernah dikirim kembali ke HTML panel admin. |
 | Kategori dinamis marketplace | Katalog toko mempertahankan kategori inti dan opsi `Lainnya` dengan nama kategori tambahan; format yang sama didukung oleh import Excel. Migrasi ke tabel kategori baru belum diperlukan. |
 | Banner marketplace dan flash sale | Bukan kebutuhan transaksi inti toko dan menambah aturan harga/stok baru. Keduanya ditunda sampai kebijakan promo toko ditetapkan. |
 
@@ -55,7 +55,7 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 | Katalog, detail, galeri, filter, stok, kategori | Sudah diadaptasi untuk satu seller. |
 | Cart, beli langsung, checkout item terpilih | Sudah diadaptasi. Checkout mensyaratkan akun aktif, KTP terverifikasi, alamat tersimpan, dan kurir aktif. |
 | Alamat dan ongkir | CRUD alamat manual sudah ada; ongkir hanya tarif flat Kurir Toko tanpa API eksternal. |
-| Midtrans Snap, callback, dan sinkronisasi status | Sudah diadaptasi. Callback memeriksa signature dan nominal; stok diproses idempoten. |
+| Paywuz API, webhook, dan sinkronisasi status | Sudah diadaptasi. Metode diambil dari API, webhook memeriksa HMAC/raw body, delivery ID, referensi, dan nominal; stok diproses idempoten hanya setelah `transaction.paid`. |
 | Invoice, label, bukti tiba, dan histori status | Sudah diadaptasi untuk alur kurir internal. |
 | Wishlist, ulasan, balasan seller, dan notifikasi | Sudah diadaptasi. |
 | Profil, keamanan akun, lupa akun/password | Sudah diadaptasi dengan OTP dan Turnstile; recovery tersembunyi DigiRack tidak dibawa. |
@@ -69,9 +69,9 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 ## Prinsip yang dipertahankan
 
 - Stok berkurang hanya setelah pembayaran terkonfirmasi.
-- Tidak ada escrow atau saldo tertahan.
+- Toko tidak mengoperasikan escrow atau saldo internal antar pengguna; pembayaran dan settlement diproses oleh Paywuz.
 - Kurir hanya Kurir Toko dan tarifnya diatur admin.
 - Admin mengunggah bukti paket tiba, lalu pembeli mengonfirmasi penerimaan.
 - Semua aksi penting memakai konfirmasi SweetAlert dan histori pesanan tetap menjadi jejak internal.
-- Checkout production hanya dibuka jika Midtrans aktif dan Server/Client Key lengkap. Mode placeholder dibatasi untuk environment `local`/`testing`.
+- Checkout production hanya dibuka jika Paywuz aktif dan API key environment aktif lengkap. Mode placeholder dibatasi untuk environment `local`/`testing`.
 - Pengajuan merchant harus menggunakan identitas, katalog, hubungan usaha, dan proses transaksi yang benar-benar dijalankan; aplikasi tidak dirancang untuk menyamarkan entitas saat onboarding gateway.

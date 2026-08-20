@@ -4,11 +4,12 @@ return [
 
     'payment_gateway' => env('PAYMENT_GATEWAY', 'placeholder'),
 
-    'midtrans' => [
-        'server_key' => env('MIDTRANS_SERVER_KEY'),
-        'client_key' => env('MIDTRANS_CLIENT_KEY'),
-        'merchant_id' => env('MIDTRANS_MERCHANT_ID'),
-        'is_production' => (bool) env('MIDTRANS_IS_PRODUCTION', false),
+    'paywuz' => [
+        'base_url' => env('PAYWUZ_BASE_URL', 'https://api.paywuz.id/v1'),
+        'sandbox_api_key' => env('PAYWUZ_SANDBOX_API_KEY'),
+        'production_api_key' => env('PAYWUZ_PRODUCTION_API_KEY'),
+        'environment' => env('PAYWUZ_ENVIRONMENT', 'sandbox'),
+        'expiry_minutes' => (int) env('PAYWUZ_EXPIRY_MINUTES', 720),
     ],
 
     /*

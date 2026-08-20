@@ -27,9 +27,9 @@ class OrderNotificationService
         );
     }
 
-    public function paymentConfirmed(Order $order, bool $automatic = false): void
+    public function paymentConfirmed(Order $order, ?string $provider = null): void
     {
-        $source = $automatic ? 'Midtrans' : 'admin toko';
+        $source = $provider ?: 'admin toko';
         $this->notifyBuyer(
             $order,
             'Pembayaran diterima',
@@ -37,11 +37,11 @@ class OrderNotificationService
             'fa-circle-check',
         );
 
-        if ($automatic) {
+        if ($provider) {
             $this->notifyAdmins(
                 $order,
                 'Pembayaran otomatis diterima',
-                "Midtrans mengonfirmasi pembayaran {$order->invoice_number}.",
+                "{$provider} mengonfirmasi pembayaran {$order->invoice_number}.",
                 'fa-money-check-dollar',
             );
         }

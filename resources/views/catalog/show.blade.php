@@ -57,7 +57,7 @@
                                 <input type="hidden" name="quantity" :value="quantity" value="1">
                                 <button @disabled($product->stock < 1 || $product->price < 1) class="w-full rounded-xl bg-primary px-5 py-3 font-extrabold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">Beli Langsung</button>
                             </form>
-                            <form method="POST" action="{{ route('cart.store', $product) }}">
+                            <form method="POST" action="{{ route('cart.store', $product) }}" data-add-to-cart>
                                 @csrf
                                 <input type="hidden" name="quantity" :value="quantity" value="1">
                                 <button @disabled($product->stock < 1 || $product->price < 1) class="grid h-12 w-12 place-items-center rounded-xl border-2 border-primary text-primary transition hover:border-secondary hover:bg-blue-50 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-50" aria-label="Masukkan produk ke keranjang" title="Masukkan ke keranjang"><i class="fas fa-cart-plus" aria-hidden="true"></i></button>

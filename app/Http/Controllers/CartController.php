@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\CartItem;
 use App\Models\Product;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CartController extends Controller
@@ -17,24 +19,36 @@ class CartController extends Controller
         return view('cart.index', ['items' => $items, 'total' => $items->sum('subtotal')]);
     }
 
-    public function store(Request $request, Product $product): RedirectResponse
+    public function store(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $validated = $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
         abort_unless($product->is_active, 404);
 
         if ($product->price < 1 || $product->stock < 1) {
-            return back()->withErrors(['quantity' => 'Produk belum dapat dibeli karena harga atau stok tidak tersedia.']);
+            throw ValidationException::withMessages([
+                'quantity' => 'Produk belum dapat dibeli karena harga atau stok tidak tersedia.',
+            ]);
         }
 
         $item = CartItem::firstOrNew(['user_id' => $request->user()->id, 'product_id' => $product->id]);
         $newQuantity = ($item->exists ? $item->quantity : 0) + $validated['quantity'];
 
         if ($newQuantity > $product->stock) {
-            return back()->withErrors(['quantity' => 'Jumlah melebihi stok yang tersedia.']);
+            throw ValidationException::withMessages([
+                'quantity' => 'Jumlah melebihi stok yang tersedia.',
+            ]);
         }
 
         $item->quantity = $newQuantity;
         $item->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Produk ditambahkan ke keranjang.',
+                'cart_count' => (int) $request->user()->cartItems()->sum('quantity'),
+                'item_quantity' => $item->quantity,
+            ]);
+        }
 
         return redirect()->route('cart.index')->with('success', 'Produk ditambahkan ke keranjang.');
     }

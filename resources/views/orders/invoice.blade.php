@@ -11,9 +11,6 @@
 <body class="bg-slate-100 p-4 text-slate-900 sm:p-8 print:bg-white print:p-0">
     @php
         $backUrl = auth()->user()->isAdmin() ? route('admin.orders.show', $order) : route('orders.show', $order);
-        $paymentLabel = match($order->payment_status->value) {
-            'paid' => 'LUNAS', 'pending' => 'MENUNGGU PEMBAYARAN', 'failed' => 'GAGAL', 'expired' => 'KEDALUWARSA', default => 'BELUM DIBAYAR'
-        };
     @endphp
     <div class="mx-auto mb-4 flex max-w-4xl justify-between print:hidden">
         <a href="{{ $backUrl }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold">Kembali</a>
@@ -27,7 +24,7 @@
 
         <section class="mt-6 grid gap-4 sm:grid-cols-2">
             <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Ditagihkan kepada</p><p class="mt-2 font-bold">{{ $order->buyer_name }}</p><p class="text-sm text-slate-600">Siswa: {{ $order->student_name }} · {{ $order->class_name }}</p><p class="text-sm text-slate-600">{{ $order->phone }}</p></div>
-            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Pengantaran</p><p class="mt-2 font-bold">{{ $order->courier_name }}</p><p class="mt-1 whitespace-pre-line text-sm text-slate-600">{{ $order->delivery_address }}</p></div>
+            <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs font-bold uppercase text-slate-400">Pengantaran</p><p class="mt-2 font-bold">{{ $order->courier_name }}</p><p class="mt-1 whitespace-pre-line text-sm text-slate-600">{{ $order->delivery_address }}</p>@if($order->delivery_maps_url)<a href="{{ $order->delivery_maps_url }}" class="mt-2 inline-block break-all text-xs font-bold text-primary">Titik navigasi pengantaran</a>@endif</div>
         </section>
 
         <div class="mt-6 overflow-x-auto">
@@ -39,7 +36,7 @@
 
         <section class="mt-6 ml-auto max-w-sm space-y-2 text-sm"><div class="flex justify-between"><span>Subtotal Produk</span><span>Rp {{ number_format($order->subtotal, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>Tarif Kurir Toko</span><span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span></div><div class="flex justify-between border-t-2 border-slate-200 pt-3 text-lg font-black"><span>Total Tagihan</span><span>Rp {{ number_format($order->total, 0, ',', '.') }}</span></div></section>
 
-        <section class="mt-8 flex flex-col gap-3 rounded-xl border border-slate-200 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"><div><p class="text-slate-500">Metode Pembayaran</p><p class="font-bold">{{ $order->payment_method->label() }}</p></div><div><p class="text-slate-500">Status Pembayaran</p><p class="font-black">{{ $paymentLabel }}</p></div><div><p class="text-slate-500">Status Pesanan</p><p class="font-bold">{{ $order->statusLabel() }}</p></div></section>
+        <section class="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 p-4 text-sm sm:flex-row sm:items-center sm:justify-between"><div><p class="text-slate-500">Metode Pembayaran</p><p class="font-bold">{{ $order->payment_method->label() }}</p></div><div><p class="mb-1.5 text-slate-500">Status Pembayaran</p><x-status-badge :status="$order->payment_status" type="payment" /></div><div><p class="mb-1.5 text-slate-500">Status Pesanan</p><x-status-badge :status="$order->status" /></div></section>
         <p class="mt-8 text-center text-xs text-slate-400">Invoice dibuat otomatis oleh sistem Toko Sipaduhok. Simpan dokumen ini sebagai bukti transaksi.</p>
     </main>
 </body>

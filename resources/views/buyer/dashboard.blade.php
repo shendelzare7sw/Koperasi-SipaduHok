@@ -44,7 +44,7 @@
             <div class="flex items-center justify-between border-b border-slate-200 p-5"><div><h2 class="font-black text-slate-900">Pesanan Terbaru</h2><p class="text-xs text-slate-500">Status transaksi Anda terkini</p></div><a href="{{ route('orders.index') }}" class="text-sm font-bold text-primary hover:text-secondary">Semua pesanan</a></div>
             <div class="divide-y divide-slate-100">
                 @forelse($recentOrders as $order)
-                    <a href="{{ route('orders.show', $order) }}" class="flex flex-col gap-3 p-5 transition hover:bg-blue-50/60 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-mono text-sm font-bold text-primary">{{ $order->invoice_number }}</p><p class="mt-1 text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} · {{ $order->items->sum('quantity') }} item</p></div><div class="sm:text-right"><span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-primary">{{ $order->statusLabel() }}</span><p class="mt-2 font-black text-slate-900">Rp {{ number_format($order->total, 0, ',', '.') }}</p></div></a>
+                    <a href="{{ route('orders.show', $order) }}" class="flex flex-col gap-3 p-5 transition hover:bg-blue-50/60 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-mono text-sm font-bold text-primary">{{ $order->invoice_number }}</p><p class="mt-1 text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} · {{ $order->items->sum('quantity') }} item</p></div><div class="sm:text-right"><x-status-badge :status="$order->status" /><p class="mt-2 font-black text-slate-900">Rp {{ number_format($order->total, 0, ',', '.') }}</p></div></a>
                 @empty
                     <div class="p-8 text-center"><i class="fas fa-bag-shopping text-3xl text-slate-300" aria-hidden="true"></i><p class="mt-3 text-sm text-slate-500">Belum ada pesanan. Mulai dari katalog toko.</p></div>
                 @endforelse
@@ -54,7 +54,7 @@
         <aside class="h-fit rounded-2xl border border-green-100 bg-green-50 p-5">
             <div class="grid h-11 w-11 place-items-center rounded-xl bg-secondary text-white"><i class="fas fa-truck" aria-hidden="true"></i></div>
             <h2 class="mt-4 font-black text-slate-900">Kurir Toko</h2>
-            <p class="mt-2 text-sm leading-6 text-slate-600">Semua pesanan dikirim oleh kurir toko. Bukti paket tiba diunggah admin sebelum Anda mengonfirmasi penerimaan.</p>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Semua pesanan dikirim oleh kurir toko. Bukti paket mulai diantar dan foto paket tiba dapat dipantau dari detail pesanan.</p>
             <a href="{{ route('orders.index') }}" class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-secondary">Pantau pesanan <i class="fas fa-arrow-right text-xs" aria-hidden="true"></i></a>
         </aside>
     </div>

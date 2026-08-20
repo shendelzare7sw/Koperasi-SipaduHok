@@ -11,7 +11,7 @@ class PageController extends Controller
     {
         return $this->page('Tentang Toko', 'Identitas usaha', [
             ['title' => 'Toko kebutuhan sekolah tepercaya', 'paragraphs' => ['Toko Sipaduhok adalah toko mandiri yang menyediakan buku, alat tulis, atribut sekolah, dan kebutuhan belajar lainnya.', 'Seluruh katalog, transaksi, pembayaran, invoice, dukungan pelanggan, dan pengiriman dikelola langsung melalui toko ini.']],
-            ['title' => 'Model layanan', 'items' => ['Produk dijual dan dikelola langsung oleh Toko Sipaduhok.', 'Toko tidak mengoperasikan escrow atau saldo internal antar pengguna; pembayaran dan settlement diproses oleh Paywuz.', 'Pengiriman dilakukan oleh Kurir Toko dengan tarif yang ditampilkan saat checkout.', 'Bukti paket tiba diunggah oleh admin dan dapat dikonfirmasi pembeli.']],
+            ['title' => 'Model layanan', 'items' => ['Produk dijual dan dikelola langsung oleh Toko Sipaduhok.', 'Toko tidak mengoperasikan escrow atau saldo internal antar pengguna; pembayaran diproses oleh penyedia pembayaran resmi.', 'Pengiriman dilakukan oleh Kurir Toko dengan tarif yang ditampilkan saat checkout.', 'Bukti paket tiba diunggah oleh admin dan dapat dikonfirmasi pembeli.']],
         ]);
     }
 
@@ -26,15 +26,15 @@ class PageController extends Controller
     public function payment(): View
     {
         return $this->page('Cara Pembayaran', 'Pembayaran langsung', [
-            ['title' => 'Kanal pembayaran digital', 'paragraphs' => ['Saat checkout, pembeli memilih kanal Paywuz yang sedang aktif. Untuk Virtual Account, bank dipilih pada halaman pembayaran resmi Paywuz. Status pembayaran diperbarui otomatis melalui webhook aman.']],
-            ['title' => 'Ketentuan pembayaran', 'items' => ['Tagihan toko dan biaya kanal ditampilkan sebelum pembayaran diselesaikan.', 'Pesanan diproses setelah Paywuz menyatakan dana telah masuk ke saldo merchant.', 'Toko tidak menggunakan escrow, wallet seller, atau penitipan dana antar pengguna.', 'Jika status belum berubah setelah pembayaran, gunakan tombol cek status atau hubungi admin dengan nomor invoice.']],
+            ['title' => 'Kanal pembayaran digital', 'paragraphs' => ['Saat checkout, pembeli memilih kanal pembayaran yang sedang aktif. Untuk Virtual Account, bank dipilih pada halaman pembayaran resmi. Status pembayaran diperbarui otomatis melalui pemberitahuan server yang aman.']],
+            ['title' => 'Ketentuan pembayaran', 'items' => ['Tagihan toko dan biaya kanal ditampilkan sebelum pembayaran diselesaikan.', 'Pesanan diproses setelah pembayaran pelanggan dikonfirmasi oleh penyedia pembayaran.', 'Toko tidak menggunakan escrow, wallet seller, atau penitipan dana antar pengguna.', 'Jika status belum berubah setelah pembayaran, gunakan tombol cek status atau hubungi admin dengan nomor invoice.']],
         ]);
     }
 
     public function shipping(): View
     {
         return $this->page('Kebijakan Pengiriman', 'Kurir Toko', [
-            ['title' => 'Layanan pengiriman toko', 'paragraphs' => ['Seluruh pesanan dikirim menggunakan Kurir Toko. Tarif pengiriman ditampilkan secara transparan saat checkout dan diatur oleh admin toko.']],
+            ['title' => 'Layanan pengiriman toko', 'paragraphs' => ['Seluruh pesanan dikirim menggunakan Kurir Toko. Tarif pengiriman ditampilkan secara transparan saat checkout dan diatur oleh admin toko.', 'Area pengiriman saat ini terbatas untuk wilayah Tangerang dan sekitarnya. Alamat di luar cakupan layanan dapat ditolak atau dikonfirmasi kembali oleh admin sebelum pesanan diproses.']],
             ['title' => 'Alur pengiriman', 'items' => ['Pesanan disiapkan setelah pembayaran terkonfirmasi.', 'Admin mengubah status menjadi siap dikirim dan dalam pengantaran.', 'Admin mengunggah foto bukti ketika paket tiba di alamat.', 'Pembeli memeriksa bukti dan mengonfirmasi bahwa barang sudah diterima.']],
         ]);
     }

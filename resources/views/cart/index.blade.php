@@ -39,13 +39,13 @@
         <aside class="h-fit rounded-2xl bg-gradient-to-br from-primary to-secondary p-6 text-white">
             <p class="text-sm text-blue-50">Subtotal produk</p>
             <p class="mt-2 text-2xl font-black">Rp {{ number_format($total, 0, ',', '.') }}</p>
-            <p class="mt-3 text-xs leading-5 text-slate-400">Tarif Kurir Toko ditambahkan saat checkout.</p>
+            <p class="mt-3 text-xs leading-5 text-white/85">Tarif Kurir Toko ditambahkan saat checkout.</p>
             @if($items->isNotEmpty())
                 <form id="checkout-selected" method="GET" action="{{ route('checkout.create') }}" class="mt-5">
                     <input type="hidden" name="selected" value="1">
                     <button :disabled="selectedCount < 1" class="w-full rounded-xl bg-white px-4 py-3 text-center font-bold text-primary transition hover:bg-accent-yellow hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50">Checkout <span x-text="selectedCount"></span> Produk</button>
                 </form>
-                <p class="mt-2 text-center text-xs text-slate-400">Hilangkan centang untuk menyimpan produk di keranjang.</p>
+                <p class="mt-2 text-center text-xs text-white/85">Hilangkan centang untuk menyimpan produk di keranjang.</p>
             @endif
         </aside>
     </div>

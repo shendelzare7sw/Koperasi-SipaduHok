@@ -36,6 +36,12 @@ class IdentityVerificationTest extends TestCase
             'city' => 'Bandung',
             'province' => 'Jawa Barat',
             'postal_code' => '40123',
+            'province_code' => '32',
+            'city_code' => '32.73',
+            'district_code' => '32.73.01',
+            'village_code' => '32.73.01.1001',
+            'latitude' => '-6.1783060',
+            'longitude' => '106.6318890',
             'is_primary' => true,
         ]);
         Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);

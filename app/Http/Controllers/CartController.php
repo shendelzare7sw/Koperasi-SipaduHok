@@ -7,11 +7,41 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CartController extends Controller
 {
+    public function summary(Request $request): JsonResponse
+    {
+        $items = $request->user()->cartItems()
+            ->with('product.images')
+            ->latest('updated_at')
+            ->get()
+            ->filter(fn (CartItem $item) => $item->product !== null)
+            ->values();
+
+        return response()->json([
+            'cart_count' => (int) $items->sum('quantity'),
+            'subtotal' => (int) $items->sum('subtotal'),
+            'items' => $items->take(5)->map(function (CartItem $item) {
+                $imagePath = $item->product->primaryImagePath();
+
+                return [
+                    'id' => $item->id,
+                    'name' => $item->product->name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->product->price,
+                    'subtotal' => $item->subtotal,
+                    'image_url' => $imagePath ? Storage::disk('public')->url($imagePath) : null,
+                    'product_url' => route('catalog.show', $item->product),
+                ];
+            })->values(),
+            'remaining_items' => max(0, $items->count() - 5),
+        ]);
+    }
+
     public function index(Request $request): View
     {
         $items = $request->user()->cartItems()->with('product')->get();

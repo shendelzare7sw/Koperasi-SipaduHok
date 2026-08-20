@@ -2,11 +2,174 @@ import './bootstrap';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Alpine from 'alpinejs';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
 window.Alpine = Alpine;
 window.Swal = Swal;
+
+L.Icon.Default.mergeOptions({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+});
+
+Alpine.data('addressForm', (config) => ({
+    endpoint: config.endpoint,
+    form: {
+        province_code: String(config.form.province_code || ''),
+        city_code: String(config.form.city_code || ''),
+        district_code: String(config.form.district_code || ''),
+        village_code: String(config.form.village_code || ''),
+        province: config.form.province || '',
+        city: config.form.city || '',
+        district: config.form.district || '',
+        village: config.form.village || '',
+        postal_code: config.form.postal_code || '',
+        latitude: String(config.form.latitude || '-6.178306'),
+        longitude: String(config.form.longitude || '106.631889'),
+    },
+    options: { province: [], city: [], district: [], village: [] },
+    query: {
+        province: config.form.province || '',
+        city: config.form.city || '',
+        district: config.form.district || '',
+        village: config.form.village || '',
+    },
+    open: null,
+    loading: null,
+    map: null,
+    marker: null,
+    locationError: '',
+
+    async init() {
+        await this.load('province');
+
+        const sequence = [
+            ['city', this.form.province_code],
+            ['district', this.form.city_code],
+            ['village', this.form.district_code],
+        ];
+
+        for (const [type, parent] of sequence) {
+            if (parent) {
+                await this.load(type, parent);
+            }
+        }
+    },
+
+    async load(type, parent = null) {
+        this.loading = type;
+
+        try {
+            const url = new URL(this.endpoint, window.location.origin);
+            if (parent) url.searchParams.set('parent', parent);
+            const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error('Data wilayah gagal dimuat.');
+            const payload = await response.json();
+            this.options[type] = payload.data || [];
+        } catch (error) {
+            this.options[type] = [];
+            this.locationError = error.message;
+        } finally {
+            this.loading = null;
+        }
+    },
+
+    filtered(type) {
+        const keyword = String(this.query[type] || '').toLocaleLowerCase('id-ID').trim();
+        if (!keyword) return this.options[type];
+
+        return this.options[type].filter((item) => item.name.toLocaleLowerCase('id-ID').includes(keyword));
+    },
+
+    async select(type, option) {
+        this.form[`${type}_code`] = option.code;
+        this.form[type] = option.name;
+        this.query[type] = option.name;
+        this.open = null;
+
+        const descendants = {
+            province: ['city', 'district', 'village'],
+            city: ['district', 'village'],
+            district: ['village'],
+            village: [],
+        };
+
+        descendants[type].forEach((child) => {
+            this.form[`${child}_code`] = '';
+            this.form[child] = '';
+            this.query[child] = '';
+            this.options[child] = [];
+        });
+
+        if (type === 'province') await this.load('city', option.code);
+        if (type === 'city') await this.load('district', option.code);
+        if (type === 'district') await this.load('village', option.code);
+        if (type === 'village' && option.postal_code) this.form.postal_code = option.postal_code;
+    },
+
+    clearIfChanged(type) {
+        if (this.query[type] !== this.form[type]) {
+            this.form[`${type}_code`] = '';
+            this.form[type] = '';
+        }
+    },
+
+    showMap() {
+        this.$nextTick(() => {
+            const lat = Number.parseFloat(this.form.latitude) || -6.178306;
+            const lng = Number.parseFloat(this.form.longitude) || 106.631889;
+
+            if (!this.map) {
+                this.map = L.map(this.$refs.map, { scrollWheelZoom: false }).setView([lat, lng], 15);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                }).addTo(this.map);
+                this.marker = L.marker([lat, lng], { draggable: true }).addTo(this.map);
+                this.marker.on('dragend', (event) => this.setCoordinates(event.target.getLatLng()));
+                this.map.on('click', (event) => {
+                    this.marker.setLatLng(event.latlng);
+                    this.setCoordinates(event.latlng);
+                });
+            } else {
+                this.map.setView([lat, lng], this.map.getZoom());
+                this.marker.setLatLng([lat, lng]);
+            }
+
+            setTimeout(() => this.map.invalidateSize(), 100);
+        });
+    },
+
+    setCoordinates(position) {
+        this.form.latitude = Number(position.lat).toFixed(7);
+        this.form.longitude = Number(position.lng).toFixed(7);
+        this.locationError = '';
+    },
+
+    useDeviceLocation() {
+        this.locationError = '';
+
+        if (!navigator.geolocation) {
+            this.locationError = 'Perangkat ini tidak mendukung deteksi lokasi.';
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition((position) => {
+            const point = { lat: position.coords.latitude, lng: position.coords.longitude };
+            this.setCoordinates(point);
+            this.showMap();
+        }, () => {
+            this.locationError = 'Izin lokasi ditolak. Anda tetap dapat memilih titik secara manual.';
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    },
+}));
 
 Alpine.start();
 
@@ -98,6 +261,12 @@ const updateCartIndicators = (count) => {
     document.querySelectorAll('[data-cart-count-text]').forEach((label) => {
         label.textContent = numericCount > 0 ? `(${numericCount})` : '';
     });
+
+    document.querySelectorAll('[data-cart-count-number]').forEach((label) => {
+        label.textContent = String(numericCount);
+    });
+
+    window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: numericCount } }));
 };
 
 document.addEventListener('submit', async (event) => {

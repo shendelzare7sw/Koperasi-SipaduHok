@@ -22,7 +22,7 @@
                     </div>
                     <div>
                         <dt class="text-blue-100">ID akun</dt>
-                        <dd class="mt-1 font-bold">KSP-{{ str_pad((string) $user->id, 6, '0', STR_PAD_LEFT) }}</dd>
+                        <dd class="mt-1 font-bold">TSH-{{ str_pad((string) $user->id, 6, '0', STR_PAD_LEFT) }}</dd>
                     </div>
                 </dl>
             </aside>

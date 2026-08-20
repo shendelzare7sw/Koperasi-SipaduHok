@@ -26,36 +26,44 @@ class RetailExperienceTest extends TestCase
             'label' => 'Rumah',
             'recipient_name' => 'Penerima Utama',
             'phone' => '081234567890',
-            'full_address' => 'Jl. Pendidikan No. 10, RT 02/RW 03',
-            'village' => 'Sukamaju',
-            'district' => 'Cendekia',
-            'city' => 'Bandung',
-            'province' => 'Jawa Barat',
-            'postal_code' => '40123',
+            'province_code' => '36',
+            'city_code' => '36.71',
+            'district_code' => '36.71.01',
+            'village_code' => '36.71.01.1001',
+            'street' => 'Jl. Pendidikan',
+            'house_number' => '10',
+            'rt' => '2',
+            'rw' => '3',
+            'landmark' => 'Pagar biru',
+            'postal_code' => '15111',
+            'latitude' => '-6.1783060',
+            'longitude' => '106.6318890',
         ];
 
         $this->actingAs($buyer)->post(route('account.addresses.store'), $payload)->assertRedirect();
         $firstAddress = $buyer->addresses()->firstOrFail();
         $this->assertTrue($firstAddress->is_primary);
-        $this->assertSame("Jl. Pendidikan No. 10, RT 02/RW 03\nSukamaju, Cendekia, Bandung, Jawa Barat, 40123", $firstAddress->formattedAddress());
+        $this->assertSame("Jl. Pendidikan, No. 10, RT 02, RW 03, Pagar biru\nSukarasa, Tangerang, Kota Tangerang, Banten, 15111", $firstAddress->formattedAddress());
+        $this->assertStringContainsString('query=-6.1783060%2C106.6318890', $firstAddress->mapsUrl());
 
         $this->post(route('account.addresses.store'), [
             ...$payload,
             'label' => 'Rumah Nenek',
-            'full_address' => 'Jl. Keluarga No. 5',
+            'street' => 'Jl. Keluarga',
+            'house_number' => '5',
         ])->assertRedirect();
         $secondAddress = $buyer->addresses()->where('label', 'Rumah Nenek')->firstOrFail();
 
         $this->put(route('account.addresses.update', $secondAddress), [
             ...$payload,
             'label' => 'Rumah Orang Tua',
-            'city' => 'Cimahi',
+            'landmark' => 'Dekat taman',
             'is_primary' => '1',
         ])->assertRedirect();
 
         $this->assertFalse($firstAddress->fresh()->is_primary);
         $this->assertTrue($secondAddress->fresh()->is_primary);
-        $this->assertSame('Cimahi', $secondAddress->fresh()->city);
+        $this->assertSame('Dekat taman', $secondAddress->fresh()->landmark);
 
         $this->delete(route('account.addresses.destroy', $secondAddress))->assertRedirect();
         $this->assertDatabaseMissing('addresses', ['id' => $secondAddress->id]);
@@ -77,6 +85,12 @@ class RetailExperienceTest extends TestCase
             'city' => 'Medan',
             'province' => 'Sumatera Utara',
             'postal_code' => '20111',
+            'province_code' => '12',
+            'city_code' => '12.71',
+            'district_code' => '12.71.01',
+            'village_code' => '12.71.01.1001',
+            'latitude' => '-6.1783060',
+            'longitude' => '106.6318890',
             'is_primary' => true,
         ]);
         $product = Product::factory()->create(['price' => 20000, 'stock' => 10]);
@@ -100,7 +114,21 @@ class RetailExperienceTest extends TestCase
             'buyer_name' => 'Penerima Tersimpan',
             'phone' => '081222222222',
             'delivery_address' => "Alamat tersimpan yang resmi\nKelurahan Sekolah, Kecamatan Belajar, Medan, Sumatera Utara, 20111",
+            'delivery_maps_url' => 'https://www.google.com/maps/search/?api=1&query=-6.1783060%2C106.6318890',
         ]);
+    }
+
+    public function test_region_combobox_endpoint_returns_cascading_local_data(): void
+    {
+        $buyer = User::factory()->create();
+
+        $this->actingAs($buyer)->getJson(route('account.regions.index'))
+            ->assertOk()
+            ->assertJsonFragment(['code' => '36', 'name' => 'Banten']);
+
+        $this->getJson(route('account.regions.index', ['parent' => '36.71.01']))
+            ->assertOk()
+            ->assertJsonFragment(['code' => '36.71.01.1001', 'name' => 'Sukarasa', 'postal_code' => '15111']);
     }
 
     public function test_buyer_can_manage_wishlist(): void

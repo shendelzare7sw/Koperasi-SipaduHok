@@ -29,6 +29,8 @@ class CartAndPaymentExperienceTest extends TestCase
             ->assertSee('data-add-to-cart', false)
             ->assertSee('fa-cart-plus', false)
             ->assertSee('data-cart-count', false)
+            ->assertSee('data-desktop-cart-dropdown', false)
+            ->assertSee('keranjang\\/ringkasan', false)
             ->assertSeeInOrder(['data-header-cart', 'aria-label="Buka notifikasi"'], false);
 
         $this->actingAs($admin)
@@ -63,6 +65,30 @@ class CartAndPaymentExperienceTest extends TestCase
             'product_id' => $addedProduct->id,
             'quantity' => 1,
         ]);
+    }
+
+    public function test_desktop_cart_summary_is_scoped_and_returns_multiple_items(): void
+    {
+        $buyer = User::factory()->create();
+        $otherBuyer = User::factory()->create();
+        $firstProduct = Product::factory()->create(['name' => 'Buku Satu', 'price' => 10000]);
+        $secondProduct = Product::factory()->create(['name' => 'Pensil Dua', 'price' => 3000]);
+        $otherProduct = Product::factory()->create(['name' => 'Produk Orang Lain', 'price' => 9000]);
+
+        CartItem::create(['user_id' => $buyer->id, 'product_id' => $firstProduct->id, 'quantity' => 2]);
+        CartItem::create(['user_id' => $buyer->id, 'product_id' => $secondProduct->id, 'quantity' => 1]);
+        CartItem::create(['user_id' => $otherBuyer->id, 'product_id' => $otherProduct->id, 'quantity' => 5]);
+
+        $this->actingAs($buyer)
+            ->getJson(route('cart.summary'))
+            ->assertOk()
+            ->assertJson([
+                'cart_count' => 3,
+                'subtotal' => 23000,
+                'remaining_items' => 0,
+            ])
+            ->assertJsonCount(2, 'items')
+            ->assertJsonMissing(['name' => 'Produk Orang Lain']);
     }
 
     public function test_cart_uses_plus_minus_without_update_confirmation_and_rejects_zero_quantity(): void
@@ -164,6 +190,12 @@ class CartAndPaymentExperienceTest extends TestCase
             'city' => 'Bandung',
             'province' => 'Jawa Barat',
             'postal_code' => '40123',
+            'province_code' => '32',
+            'city_code' => '32.73',
+            'district_code' => '32.73.01',
+            'village_code' => '32.73.01.1001',
+            'latitude' => '-6.1783060',
+            'longitude' => '106.6318890',
             'is_primary' => true,
         ]);
         $product = Product::factory()->create(['price' => 15000, 'stock' => 5, 'is_active' => true]);

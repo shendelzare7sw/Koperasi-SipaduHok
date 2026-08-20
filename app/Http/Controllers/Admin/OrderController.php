@@ -35,7 +35,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        return view('admin.orders.show', ['order' => $order->load(['items.review.buyer', 'buyer', 'histories.actor'])]);
+        return view('admin.orders.show', ['order' => $order->load(['items.review.buyer', 'buyer', 'histories.actor', 'dispatchProofs', 'deliveryProofs'])]);
     }
 
     public function invoice(Order $order): View
@@ -65,26 +65,48 @@ class OrderController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in([OrderStatus::Ready->value, OrderStatus::OutForDelivery->value])],
             'note' => ['nullable', 'string', 'max:500'],
+            'dispatch_proofs' => [Rule::requiredIf($request->input('status') === OrderStatus::OutForDelivery->value), 'nullable', 'array', 'min:1', 'max:5'],
+            'dispatch_proofs.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
-        $workflow->transition($order, OrderStatus::from($validated['status']), $request->user(), $validated['note'] ?? null);
+        $target = OrderStatus::from($validated['status']);
 
-        return back()->with('success', 'Status pesanan berhasil diperbarui.');
+        if ($target === OrderStatus::Ready) {
+            $workflow->markReady($order, $request->user(), $validated['note'] ?? null);
+
+            return back()->with('success', 'Pesanan ditandai siap dikirim.');
+        }
+
+        $proofPaths = collect($request->file('dispatch_proofs'))
+            ->map(fn ($file) => $file->store('dispatch-proofs', 'public'))
+            ->all();
+
+        try {
+            $workflow->markOutForDelivery($order, $request->user(), $proofPaths, $validated['note'] ?? null);
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($proofPaths);
+            throw $exception;
+        }
+
+        return back()->with('success', 'Bukti pengiriman tersimpan dan kurir mulai mengantar pesanan.');
     }
 
     public function markDelivered(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
     {
         $validated = $request->validate([
-            'delivery_proof' => ['required', 'image', 'max:5120'],
+            'delivery_proofs' => ['required', 'array', 'min:1', 'max:5'],
+            'delivery_proofs.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'delivery_note' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $proofPath = $request->file('delivery_proof')->store('delivery-proofs', 'public');
+        $proofPaths = collect($request->file('delivery_proofs'))
+            ->map(fn ($file) => $file->store('delivery-proofs', 'public'))
+            ->all();
 
         try {
-            $workflow->markDelivered($order, $request->user(), $proofPath, $validated['delivery_note'] ?? null);
+            $workflow->markDelivered($order, $request->user(), $proofPaths, $validated['delivery_note'] ?? null);
         } catch (Throwable $exception) {
-            Storage::disk('public')->delete($proofPath);
+            Storage::disk('public')->delete($proofPaths);
             throw $exception;
         }
 

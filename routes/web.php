@@ -20,6 +20,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\IdentityDocumentController;
 use App\Http\Controllers\IdentityVerificationController;
+use App\Http\Controllers\IndonesiaRegionController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'active', 'role:pembeli'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', BuyerDashboardController::class)->name('buyer.dashboard');
     Route::get('/akun/alamat', [AddressController::class, 'index'])->name('account.addresses.index');
+    Route::get('/akun/wilayah', IndonesiaRegionController::class)->middleware('throttle:120,1')->name('account.regions.index');
     Route::post('/akun/alamat', [AddressController::class, 'store'])->name('account.addresses.store');
     Route::put('/akun/alamat/{address}', [AddressController::class, 'update'])->name('account.addresses.update');
     Route::patch('/akun/alamat/{address}/utama', [AddressController::class, 'setPrimary'])->name('account.addresses.primary');
@@ -82,6 +84,7 @@ Route::middleware(['auth', 'active', 'role:pembeli'])->group(function () {
     Route::post('/wishlist/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
     Route::delete('/wishlist/{product}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
     Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+    Route::get('/keranjang/ringkasan', [CartController::class, 'summary'])->name('cart.summary');
     Route::post('/keranjang/{product}', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/keranjang/item/{cartItem}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/keranjang/item/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
@@ -106,6 +109,8 @@ Route::middleware(['auth', 'active', 'role:admin'])->prefix('admin')->name('admi
     Route::get('/products/import/template', [AdminProductImportController::class, 'downloadTemplate'])->name('products.import.template');
     Route::post('/products/import', [AdminProductImportController::class, 'store'])->name('products.import.store');
     Route::get('/products/archived', [AdminProductController::class, 'archived'])->name('products.archived');
+    Route::post('/products/bulk-archive', [AdminProductController::class, 'bulkArchive'])->name('products.bulk-archive');
+    Route::post('/products/archived/bulk-action', [AdminProductController::class, 'bulkArchivedAction'])->name('products.archived.bulk-action');
     Route::patch('/products/{product}/restore', [AdminProductController::class, 'restore'])->whereNumber('product')->name('products.restore');
     Route::delete('/products/{product}/force', [AdminProductController::class, 'forceDestroy'])->whereNumber('product')->name('products.force-destroy');
     Route::resource('products', AdminProductController::class)->except('show');

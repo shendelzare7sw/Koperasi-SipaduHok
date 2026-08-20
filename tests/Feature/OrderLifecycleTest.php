@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Models\CartItem;
 use App\Models\Courier;
 use App\Models\Order;
+use App\Models\OrderShippingProof;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,6 +33,12 @@ class OrderLifecycleTest extends TestCase
             'city' => 'Jakarta Selatan',
             'province' => 'DKI Jakarta',
             'postal_code' => '12345',
+            'province_code' => '31',
+            'city_code' => '31.74',
+            'district_code' => '31.74.01',
+            'village_code' => '31.74.01.1001',
+            'latitude' => '-6.1783060',
+            'longitude' => '106.6318890',
             'is_primary' => true,
         ]);
         $admin = User::factory()->admin()->create();
@@ -70,19 +77,71 @@ class OrderLifecycleTest extends TestCase
         $this->assertSame(8, $product->fresh()->stock);
         $this->assertSame(2, $buyer->unreadNotifications()->count());
 
-        $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), ['status' => 'ready'])->assertRedirect();
-        $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), ['status' => 'out_for_delivery'])->assertRedirect();
+        $this->actingAs($admin)
+            ->get(route('admin.orders.show', $order))
+            ->assertOk()
+            ->assertSee('data-status-badge="order:processing"', false)
+            ->assertSee('data-status-badge="payment:paid"', false);
+
+        $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), [
+            'status' => 'ready',
+            'note' => 'Paket sudah dibungkus rapi.',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $order->refresh();
+        $this->assertSame(OrderStatus::Ready, $order->status);
+        $this->assertCount(0, $order->shippingProofs);
+
+        $tooManyProofs = collect(range(1, 6))
+            ->map(fn ($number) => UploadedFile::fake()->image("bukti-{$number}.jpg"))
+            ->all();
+        $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), [
+            'status' => 'out_for_delivery',
+            'dispatch_proofs' => $tooManyProofs,
+        ])->assertSessionHasErrors('dispatch_proofs');
+        $this->assertSame(OrderStatus::Ready, $order->fresh()->status);
+
+        $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), ['status' => 'out_for_delivery'])
+            ->assertSessionHasErrors('dispatch_proofs');
+        $this->assertSame(OrderStatus::Ready, $order->fresh()->status);
+
+        $this->actingAs($admin)->patch(route('admin.orders.update-status', $order), [
+            'status' => 'out_for_delivery',
+            'dispatch_proofs' => [
+                UploadedFile::fake()->image('mulai-diantar-1.jpg'),
+                UploadedFile::fake()->image('mulai-diantar-2.png'),
+            ],
+            'note' => 'Paket diserahkan kepada kurir toko.',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $order->refresh();
+        $this->assertSame(OrderStatus::OutForDelivery, $order->status);
+        $dispatchProofs = $order->shippingProofs()->where('stage', OrderShippingProof::STAGE_DISPATCH)->get();
+        $this->assertCount(2, $dispatchProofs);
+        $dispatchProofs->each(fn ($proof) => Storage::disk('public')->assertExists($proof->path));
 
         $this->actingAs($admin)->post(route('admin.orders.mark-delivered', $order), [
-            'delivery_proof' => UploadedFile::fake()->image('bukti-tiba.jpg'),
+            'delivery_proofs' => [
+                UploadedFile::fake()->image('bukti-tiba-1.jpg'),
+                UploadedFile::fake()->image('bukti-tiba-2.png'),
+            ],
             'delivery_note' => 'Diterima di alamat pembeli.',
         ])->assertRedirect();
 
         $order->refresh();
         $this->assertSame(OrderStatus::Delivered, $order->status);
-        $this->assertNotNull($order->delivery_proof_path);
+        $deliveryProofs = $order->shippingProofs()->where('stage', OrderShippingProof::STAGE_DELIVERY)->get();
+        $this->assertCount(2, $deliveryProofs);
         $this->assertSame(5, $buyer->unreadNotifications()->count());
-        Storage::disk('public')->assertExists($order->delivery_proof_path);
+        $deliveryProofs->each(fn ($proof) => Storage::disk('public')->assertExists($proof->path));
+
+        $this->actingAs($buyer)
+            ->get(route('orders.show', $order))
+            ->assertOk()
+            ->assertSee('Paket Mulai Diantar')
+            ->assertSee('Paket Tiba di Alamat')
+            ->assertSee('data-status-badge="order:delivered"', false)
+            ->assertSee('data-status-badge="payment:paid"', false);
 
         $this->actingAs($buyer)->post(route('orders.confirm-received', $order))->assertRedirect();
         $this->assertSame(OrderStatus::Completed, $order->fresh()->status);
@@ -93,7 +152,9 @@ class OrderLifecycleTest extends TestCase
             ->get(route('orders.invoice', $order))
             ->assertOk()
             ->assertSee($order->invoice_number)
-            ->assertSee('Buku Matematika');
+            ->assertSee('Buku Matematika')
+            ->assertSee('data-status-badge="order:completed"', false)
+            ->assertSee('data-status-badge="payment:paid"', false);
 
         $this->actingAs($admin)
             ->get(route('admin.orders.label', $order))

@@ -23,6 +23,7 @@
         <h1 class="relative mt-2 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">Buku, alat tulis, dan kebutuhan sekolah dalam satu tempat.</h1>
         <p class="relative mt-2 max-w-2xl text-sm text-blue-50 sm:text-base">Belanja praktis dengan pembayaran digital, invoice elektronik, dan pengantaran langsung oleh Kurir Toko.</p>
         <div class="relative mt-4 flex flex-wrap gap-2 text-[11px] font-bold text-white sm:text-xs">
+            <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-location-dot text-accent-yellow" aria-hidden="true"></i>Khusus Tangerang dan sekitarnya</span>
             <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-shield-halved text-emerald-200" aria-hidden="true"></i>Pembayaran aman</span>
             <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-file-invoice text-accent-yellow" aria-hidden="true"></i>Invoice setiap transaksi</span>
             <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5"><i class="fas fa-headset text-blue-100" aria-hidden="true"></i>Dukungan pelanggan</span>

@@ -31,7 +31,7 @@
                 <img src="{{ asset('img/logo.png') }}?v={{ filemtime(public_path('img/logo.png')) }}" alt="Logo Sipaduhok" data-brand-logo="header" class="h-16 w-16 shrink-0 object-contain drop-shadow-md sm:h-20 sm:w-20">
                 <span class="hidden sm:block">
                     <span class="block text-base font-extrabold leading-tight">Toko Sipaduhok</span>
-                    <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah</span>
+                    <span class="block text-xs text-blue-50">Belanja kebutuhan sekolah di Tangerang</span>
                 </span>
             </a>
 
@@ -52,10 +52,7 @@
                     @endif
                     <span class="ml-2 flex items-center gap-2 border-l border-white/20 pl-3">
                         @unless(auth()->user()->isAdmin())
-                            <a href="{{ route('cart.index') }}" data-header-cart class="relative grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white/10 text-white transition hover:bg-white/20" aria-label="Buka keranjang, {{ $cartCount }} produk">
-                                <i class="fas fa-cart-shopping" aria-hidden="true"></i>
-                                <span data-cart-count class="absolute -right-1 -top-1 h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary {{ $cartCount > 0 ? 'grid' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
-                            </a>
+                            <x-cart-dropdown :cart-count="$cartCount" />
                         @endunless
                         @include('components.notification-dropdown')
                         @include('components.account-dropdown')
@@ -194,6 +191,7 @@
                         <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-file-invoice text-accent-yellow" aria-hidden="true"></i>Invoice elektronik</span>
                         <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-headset text-blue-200" aria-hidden="true"></i>Dukungan pelanggan</span>
                         <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"><i class="fas fa-truck text-blue-200" aria-hidden="true"></i>Pengiriman terlacak</span>
+                        <span class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 sm:col-span-2 lg:col-span-1 xl:col-span-2"><i class="fas fa-location-dot text-accent-yellow" aria-hidden="true"></i>Khusus Tangerang dan sekitarnya</span>
                     </div>
                 </div>
 

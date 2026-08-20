@@ -114,7 +114,7 @@ class CheckoutController extends Controller
                 $paymentMethods = $gateway->paymentMethods();
             } catch (Throwable $exception) {
                 report($exception);
-                $paymentMethodsError = 'Metode pembayaran Paywuz sedang tidak dapat dimuat. Silakan coba lagi.';
+                $paymentMethodsError = 'Metode pembayaran sedang tidak dapat dimuat. Silakan coba lagi.';
             }
         }
 
@@ -143,7 +143,7 @@ class CheckoutController extends Controller
 
         if (! $payments->isCheckoutReady()) {
             throw ValidationException::withMessages([
-                'payment' => 'Checkout sedang dinonaktifkan karena konfigurasi Paywuz belum lengkap.',
+                'payment' => 'Checkout sedang dinonaktifkan karena konfigurasi pembayaran belum lengkap.',
             ]);
         }
 
@@ -164,6 +164,19 @@ class CheckoutController extends Controller
             throw ValidationException::withMessages(['address_id' => 'Alamat tersimpan tidak valid.']);
         }
 
+        if (collect([
+            $address->province_code,
+            $address->city_code,
+            $address->district_code,
+            $address->village_code,
+            $address->latitude,
+            $address->longitude,
+        ])->contains(fn ($value) => blank($value))) {
+            throw ValidationException::withMessages([
+                'address_id' => 'Lengkapi wilayah dan titik peta pada alamat ini sebelum checkout.',
+            ]);
+        }
+
         $validated['buyer_name'] = $address->recipient_name;
         $validated['phone'] = $address->phone;
         $validated['delivery_address'] = $address->formattedAddress();
@@ -176,18 +189,18 @@ class CheckoutController extends Controller
             } catch (Throwable $exception) {
                 report($exception);
                 throw ValidationException::withMessages([
-                    'gateway_payment_method' => 'Metode pembayaran Paywuz sedang tidak dapat diverifikasi.',
+                    'gateway_payment_method' => 'Metode pembayaran sedang tidak dapat diverifikasi.',
                 ]);
             }
 
             if (! $selectedGatewayMethod) {
                 throw ValidationException::withMessages([
-                    'gateway_payment_method' => 'Metode pembayaran Paywuz tidak tersedia atau sudah dinonaktifkan.',
+                    'gateway_payment_method' => 'Metode pembayaran tidak tersedia atau sudah dinonaktifkan.',
                 ]);
             }
         }
 
-        $order = DB::transaction(function () use ($request, $validated, $payments, $selectedGatewayMethod) {
+        $order = DB::transaction(function () use ($request, $validated, $payments, $selectedGatewayMethod, $address) {
             $selectedIds = collect($validated['cart_item_ids'])->map(fn ($id) => (int) $id)->unique()->values();
             $cartItems = CartItem::query()
                 ->where('user_id', $request->user()->id)
@@ -244,6 +257,10 @@ class CheckoutController extends Controller
                 'courier_id' => $courier->id,
                 'courier_name' => $courier->name,
                 'shipping_cost' => $shippingCost,
+                'delivery_address' => $address->formattedAddress(),
+                'delivery_latitude' => $address->latitude,
+                'delivery_longitude' => $address->longitude,
+                'delivery_maps_url' => $address->mapsUrl(),
                 'status' => OrderStatus::PendingPayment,
                 'payment_status' => PaymentStatus::Unpaid,
                 'payment_gateway' => $payments->gateway(),
@@ -253,7 +270,7 @@ class CheckoutController extends Controller
                 'total' => $total,
             ]);
 
-            $order->update(['invoice_number' => 'KSP-'.now()->format('Ymd').'-'.str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)]);
+            $order->update(['invoice_number' => 'TSH-'.now()->format('Ymd').'-'.str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)]);
 
             foreach ($cartItems as $cartItem) {
                 $product = $products->get($cartItem->product_id);
@@ -302,7 +319,7 @@ class CheckoutController extends Controller
         }
 
         if ($order->payment_gateway === 'paywuz' && filled($order->payment_url)) {
-            return redirect()->route('orders.payment', $order)->with('success', 'Pesanan berhasil dibuat. Selesaikan pembayaran melalui Paywuz.');
+            return redirect()->route('orders.payment', $order)->with('success', 'Pesanan berhasil dibuat. Silakan selesaikan pembayaran.');
         }
 
         return redirect()->route('orders.show', $order)->with('success', 'Pesanan dibuat. Pembayaran menggunakan mode konfirmasi internal.');

@@ -44,6 +44,7 @@
                             </span>
                             <span class="mt-3 block text-sm font-bold text-slate-700">{{ $address->recipient_name }} · {{ $address->phone }}</span>
                             <span class="mt-2 block whitespace-pre-line text-xs leading-5 text-slate-500">{{ $address->formattedAddress() }}</span>
+                            @if($address->mapsUrl())<span class="mt-2 block text-xs font-bold text-emerald-700"><i class="fas fa-map-location-dot mr-1"></i>Titik navigasi tersimpan</span>@else<span class="mt-2 block text-xs font-bold text-amber-700"><i class="fas fa-triangle-exclamation mr-1"></i>Lengkapi titik peta dari menu Kelola Alamat</span>@endif
                         </label>
                     @endforeach
                 </div>
@@ -64,6 +65,7 @@
 
             <section class="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-primary"><i class="fas fa-truck" aria-hidden="true"></i></span><h2 class="text-lg font-black text-slate-900">Pengiriman</h2></div>
+                <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900"><i class="fas fa-location-dot mt-1 text-secondary" aria-hidden="true"></i><p><strong>Area layanan terbatas.</strong> Kurir Toko saat ini hanya melayani alamat di wilayah Tangerang dan sekitarnya.</p></div>
                 @if($courier)
                     <div class="flex items-start justify-between gap-4 rounded-xl border border-primary/20 bg-blue-50 p-4">
                         <div><p class="font-bold text-slate-900">{{ $courier->name }}</p><p class="mt-1 text-sm text-slate-600">Layanan pengiriman resmi Toko Sipaduhok{{ $courier->estimate ? ' · '.$courier->estimate : '' }}</p></div>
@@ -80,7 +82,7 @@
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-primary"><i class="fas fa-wallet" aria-hidden="true"></i></span><h2 class="text-lg font-black text-slate-900">Metode Pembayaran</h2></div>
                 @if($paymentStatus['ready'])
-                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><i class="fas fa-shield-halved mt-0.5" aria-hidden="true"></i><p><strong>Paywuz {{ $paymentStatus['environment'] === 'production' ? 'Production' : 'Sandbox' }} aktif.</strong><br>Status pembayaran diverifikasi melalui webhook bertanda tangan.</p></div>
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><i class="fas fa-shield-halved mt-0.5" aria-hidden="true"></i><p><strong>Pembayaran digital tersedia.</strong><br>Status pembayaran diverifikasi secara otomatis dan aman.</p></div>
                 @elseif($paymentStatus['enabled'])
                     <div class="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><i class="fas fa-triangle-exclamation mt-0.5" aria-hidden="true"></i><p><strong>Checkout sementara tidak tersedia.</strong><br>Konfigurasi payment gateway belum lengkap dan perlu diperbaiki admin.</p></div>
                 @else
@@ -103,20 +105,20 @@
                                     <input type="radio" name="gateway_payment_method" value="{{ $method['code'] }}" x-model="selectedPayment" required class="sr-only">
                                     <span class="flex items-start gap-3">
                                         <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white"><i class="fas {{ $method['type'] === 'qris' ? 'fa-qrcode' : 'fa-building-columns' }}" aria-hidden="true"></i></span>
-                                        <span class="min-w-0"><span class="block font-black text-slate-900">{{ $method['name'] }}</span><span class="mt-1 block text-xs leading-5 text-slate-500">{{ $method['type'] === 'meta' ? 'Pilih bank di halaman Paywuz' : ($feeParts ? 'Biaya mulai '.$feeParts : 'Tanpa estimasi biaya tambahan') }}</span></span>
+                                        <span class="min-w-0"><span class="block font-black text-slate-900">{{ $method['name'] }}</span><span class="mt-1 block text-xs leading-5 text-slate-500">{{ $method['type'] === 'meta' ? 'Pilih bank di halaman pembayaran' : ($feeParts ? 'Biaya mulai '.$feeParts : 'Tanpa estimasi biaya tambahan') }}</span></span>
                                     </span>
                                     <span class="mt-3 block text-[11px] text-slate-400">Batas Rp {{ number_format($method['min_amount'], 0, ',', '.') }}–Rp {{ number_format($method['max_amount'], 0, ',', '.') }}</span>
                                 </label>
                             @endforeach
                         </div>
-                        <p class="mt-3 text-xs leading-5 text-slate-500">Biaya final dan total yang harus dibayar ditampilkan oleh Paywuz. Untuk Virtual Account, pilih bank setelah membuka halaman pembayaran.</p>
+                        <p class="mt-3 text-xs leading-5 text-slate-500">Biaya final dan total yang harus dibayar ditampilkan pada halaman pembayaran. Untuk Virtual Account, pilih bank setelah membuka halaman tersebut.</p>
                     @else
-                        <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Tidak ada metode pembayaran Paywuz yang aktif untuk proyek ini.</div>
+                        <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Tidak ada metode pembayaran digital yang sedang aktif.</div>
                     @endif
                 @else
                     <div data-payment-gateway-method class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">Mode konfirmasi pembayaran internal hanya tersedia untuk development.</div>
                 @endif
-                <p class="mt-3 text-xs leading-5 text-slate-500">Toko tidak mengoperasikan saldo internal atau escrow antar pengguna. Pembayaran dan settlement diproses oleh Paywuz.</p>
+                <p class="mt-3 text-xs leading-5 text-slate-500">Toko tidak mengoperasikan saldo internal atau escrow antar pengguna. Pembayaran diproses langsung oleh penyedia pembayaran resmi.</p>
             </section>
         </div>
 

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -89,6 +90,65 @@ class ProductController extends Controller
         return back()->with('success', 'Produk dinonaktifkan dan dipindahkan ke arsip.');
     }
 
+    public function bulkArchive(Request $request): RedirectResponse
+    {
+        $productIds = $this->validatedProductIds($request);
+        $products = Product::query()->whereKey($productIds)->get();
+
+        if ($products->count() !== count($productIds)) {
+            throw ValidationException::withMessages([
+                'product_ids' => 'Sebagian produk tidak ditemukan atau sudah berada di arsip.',
+            ]);
+        }
+
+        DB::transaction(function () use ($products): void {
+            foreach ($products as $product) {
+                $product->cartItems()->delete();
+                $product->delete();
+            }
+        });
+
+        return back()->with('success', $products->count().' produk berhasil dipindahkan ke arsip.');
+    }
+
+    public function bulkArchivedAction(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', Rule::in(['restore', 'force_delete'])],
+            'product_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'product_ids.*' => ['required', 'integer', 'distinct'],
+        ], [
+            'action.required' => 'Pilih tindakan untuk produk yang ditandai.',
+            'product_ids.required' => 'Pilih minimal satu produk.',
+        ]);
+
+        $productIds = array_map('intval', $validated['product_ids']);
+        $products = Product::onlyTrashed()->with('images')->whereKey($productIds)->get();
+
+        if ($products->count() !== count($productIds)) {
+            throw ValidationException::withMessages([
+                'product_ids' => 'Sebagian produk arsip tidak ditemukan atau sudah diproses.',
+            ]);
+        }
+
+        if ($validated['action'] === 'restore') {
+            DB::transaction(fn () => $products->each->restore());
+
+            return back()->with('success', $products->count().' produk berhasil dipulihkan.');
+        }
+
+        $imagePaths = $products->flatMap(fn (Product $product) => $product->images->pluck('image_path')->push($product->image_path))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        DB::transaction(fn () => $products->each->forceDelete());
+        Storage::disk('public')->delete($imagePaths);
+
+        return back()->with('success', $products->count().' produk dan seluruh fotonya berhasil dihapus permanen.');
+    }
+
     public function restore(int $product): RedirectResponse
     {
         $archivedProduct = Product::onlyTrashed()->findOrFail($product);
@@ -166,6 +226,19 @@ class ProductController extends Controller
     private function normaliseCurrency(mixed $value): mixed
     {
         return is_string($value) ? str_replace('.', '', trim($value)) : $value;
+    }
+
+    /** @return list<int> */
+    private function validatedProductIds(Request $request): array
+    {
+        $validated = $request->validate([
+            'product_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'product_ids.*' => ['required', 'integer', 'distinct'],
+        ], [
+            'product_ids.required' => 'Pilih minimal satu produk.',
+        ]);
+
+        return array_map('intval', $validated['product_ids']);
     }
 
     private function storeImages(Request $request, Product $product): void

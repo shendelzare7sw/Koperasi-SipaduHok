@@ -28,7 +28,7 @@
                 @forelse($buyers as $buyer)
                     @php $status = $buyer->identityVerification?->status ?? 'not_submitted'; @endphp
                     <tr class="hover:bg-blue-50/40">
-                        <td class="p-4"><p class="font-bold text-slate-900">{{ $buyer->name }}</p><p class="text-xs text-slate-500">ID KSP-{{ str_pad((string) $buyer->id, 6, '0', STR_PAD_LEFT) }} · {{ $buyer->created_at->format('d/m/Y') }}</p></td>
+                        <td class="p-4"><p class="font-bold text-slate-900">{{ $buyer->name }}</p><p class="text-xs text-slate-500">ID TSH-{{ str_pad((string) $buyer->id, 6, '0', STR_PAD_LEFT) }} · {{ $buyer->created_at->format('d/m/Y') }}</p></td>
                         <td class="p-4"><span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide {{ $buyer->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">{{ $buyer->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
                         <td class="p-4"><span class="inline-flex rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide {{ $status === 'verified' ? 'bg-emerald-100 text-emerald-700' : ($status === 'rejected' ? 'bg-red-100 text-red-700' : ($status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')) }}">{{ $buyer->identityVerification?->statusLabel() ?? 'Belum Mengirim' }}</span></td>
                         <td class="p-4"><p>{{ $buyer->email }}</p><p class="text-xs text-slate-500">{{ $buyer->phone }}</p></td>

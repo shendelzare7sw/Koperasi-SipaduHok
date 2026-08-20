@@ -5,7 +5,7 @@
             <a href="{{ route('orders.show', $order) }}" class="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-primary">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div><p class="font-mono text-sm font-bold text-slate-900">{{ $order->invoice_number }}</p><p class="text-sm text-slate-500">{{ $order->created_at->format('d/m/Y H:i') }} · {{ $order->student_name }} / {{ $order->class_name }}</p></div>
-                    <div class="sm:text-right"><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">{{ $order->statusLabel() }}</span><p class="mt-2 font-black">Rp {{ number_format($order->total, 0, ',', '.') }}</p></div>
+                    <div class="sm:text-right"><x-status-badge :status="$order->status" /><p class="mt-2 font-black">Rp {{ number_format($order->total, 0, ',', '.') }}</p>@if($order->payment_gateway === 'paywuz' && in_array($order->payment_status, [App\Enums\PaymentStatus::Unpaid, App\Enums\PaymentStatus::Pending], true))<p class="mt-1 text-xs font-bold text-primary"><i class="fas fa-credit-card mr-1" aria-hidden="true"></i>Selesaikan pembayaran dari detail pesanan</p>@endif</div>
                 </div>
             </a>
         @empty

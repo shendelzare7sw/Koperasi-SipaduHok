@@ -17,11 +17,11 @@ class Order extends Model
     protected $fillable = [
         'invoice_number', 'user_id', 'buyer_name', 'student_name', 'class_name', 'phone',
         'courier_id', 'courier_name', 'shipping_cost', 'delivery_address',
+        'delivery_latitude', 'delivery_longitude', 'delivery_maps_url',
         'status', 'payment_method', 'payment_gateway', 'payment_status', 'payment_reference',
         'payment_token', 'gateway_payment_method', 'payment_url', 'gateway_total',
         'payment_environment', 'payment_expires_at', 'gateway_settled_at',
-        'subtotal', 'total', 'notes', 'paid_at', 'ready_at', 'dispatched_at',
-        'delivered_at', 'delivery_proof_path', 'delivery_note',
+        'subtotal', 'total', 'notes', 'paid_at', 'ready_at', 'dispatched_at', 'delivered_at',
         'received_confirmed_at', 'completed_at',
     ];
 
@@ -32,6 +32,8 @@ class Order extends Model
             'payment_method' => PaymentMethod::class,
             'payment_status' => PaymentStatus::class,
             'shipping_cost' => 'integer',
+            'delivery_latitude' => 'decimal:7',
+            'delivery_longitude' => 'decimal:7',
             'subtotal' => 'integer',
             'total' => 'integer',
             'gateway_total' => 'integer',
@@ -66,6 +68,21 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class)->oldest();
     }
 
+    public function shippingProofs(): HasMany
+    {
+        return $this->hasMany(OrderShippingProof::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function dispatchProofs(): HasMany
+    {
+        return $this->shippingProofs()->where('stage', OrderShippingProof::STAGE_DISPATCH);
+    }
+
+    public function deliveryProofs(): HasMany
+    {
+        return $this->shippingProofs()->where('stage', OrderShippingProof::STAGE_DELIVERY);
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
@@ -78,6 +95,6 @@ class Order extends Model
 
     public function canBeConfirmedByBuyer(): bool
     {
-        return $this->status === OrderStatus::Delivered && filled($this->delivery_proof_path);
+        return $this->status === OrderStatus::Delivered && $this->deliveryProofs()->exists();
     }
 }

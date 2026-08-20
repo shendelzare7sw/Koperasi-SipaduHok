@@ -12,12 +12,19 @@ class Address extends Model
 
     protected $fillable = [
         'user_id', 'label', 'recipient_name', 'phone', 'full_address',
-        'village', 'district', 'city', 'province', 'postal_code', 'is_primary',
+        'street', 'house_number', 'rt', 'rw', 'landmark',
+        'village', 'district', 'city', 'province', 'postal_code',
+        'province_code', 'city_code', 'district_code', 'village_code',
+        'latitude', 'longitude', 'is_primary',
     ];
 
     protected function casts(): array
     {
-        return ['is_primary' => 'boolean'];
+        return [
+            'is_primary' => 'boolean',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+        ];
     }
 
     public function user(): BelongsTo
@@ -37,5 +44,14 @@ class Address extends Model
         return collect([$this->full_address, $this->regionLine()])
             ->filter(fn ($value) => filled($value))
             ->implode("\n");
+    }
+
+    public function mapsUrl(): ?string
+    {
+        if ($this->latitude === null || $this->longitude === null) {
+            return null;
+        }
+
+        return 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($this->latitude.','.$this->longitude);
     }
 }

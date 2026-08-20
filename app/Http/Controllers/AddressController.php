@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Address;
+use App\Models\IndonesiaRegion;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AddressController extends Controller
@@ -98,20 +100,72 @@ class AddressController extends Controller
     /** @return array<string, mixed> */
     private function validateAddress(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'label' => ['required', 'string', 'max:50'],
             'recipient_name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+()\-\s]+$/'],
-            'full_address' => ['required', 'string', 'max:1000'],
-            'village' => ['required', 'string', 'max:100'],
-            'district' => ['required', 'string', 'max:100'],
-            'city' => ['required', 'string', 'max:100'],
-            'province' => ['required', 'string', 'max:100'],
+            'province_code' => ['required', 'string', 'max:2', 'exists:indonesia_regions,code'],
+            'city_code' => ['required', 'string', 'max:5', 'exists:indonesia_regions,code'],
+            'district_code' => ['required', 'string', 'max:8', 'exists:indonesia_regions,code'],
+            'village_code' => ['required', 'string', 'max:13', 'exists:indonesia_regions,code'],
+            'street' => ['required', 'string', 'max:255'],
+            'house_number' => ['nullable', 'string', 'max:50'],
+            'rt' => ['nullable', 'string', 'regex:/^\d{1,3}$/'],
+            'rw' => ['nullable', 'string', 'regex:/^\d{1,3}$/'],
+            'landmark' => ['nullable', 'string', 'max:500'],
             'postal_code' => ['required', 'string', 'regex:/^\d{5}$/'],
+            'latitude' => ['required', 'numeric', 'between:-11.5,6.5'],
+            'longitude' => ['required', 'numeric', 'between:94.5,141.5'],
         ], [
             'phone.regex' => 'Nomor HP hanya boleh berisi angka dan simbol telepon yang umum.',
             'postal_code.regex' => 'Kode pos harus terdiri dari lima digit angka.',
+            'latitude.between' => 'Titik lokasi harus berada di wilayah Indonesia.',
+            'longitude.between' => 'Titik lokasi harus berada di wilayah Indonesia.',
         ]);
+
+        $regions = IndonesiaRegion::query()
+            ->whereIn('code', [
+                $validated['province_code'],
+                $validated['city_code'],
+                $validated['district_code'],
+                $validated['village_code'],
+            ])
+            ->get()
+            ->keyBy('code');
+
+        $province = $regions->get($validated['province_code']);
+        $city = $regions->get($validated['city_code']);
+        $district = $regions->get($validated['district_code']);
+        $village = $regions->get($validated['village_code']);
+
+        if ($province?->level !== IndonesiaRegion::PROVINCE
+            || $city?->level !== IndonesiaRegion::REGENCY
+            || $district?->level !== IndonesiaRegion::DISTRICT
+            || $village?->level !== IndonesiaRegion::VILLAGE
+            || $city?->parent_code !== $province?->code
+            || $district?->parent_code !== $city?->code
+            || $village?->parent_code !== $district?->code) {
+            throw ValidationException::withMessages([
+                'village_code' => 'Urutan wilayah tidak valid. Pilih kembali dari provinsi hingga kelurahan/desa.',
+            ]);
+        }
+
+        $detailParts = collect([
+            $validated['street'],
+            filled($validated['house_number'] ?? null) ? 'No. '.$validated['house_number'] : null,
+            filled($validated['rt'] ?? null) ? 'RT '.str_pad($validated['rt'], 2, '0', STR_PAD_LEFT) : null,
+            filled($validated['rw'] ?? null) ? 'RW '.str_pad($validated['rw'], 2, '0', STR_PAD_LEFT) : null,
+            $validated['landmark'] ?? null,
+        ])->filter()->implode(', ');
+
+        return [
+            ...$validated,
+            'full_address' => $detailParts,
+            'province' => $province->name,
+            'city' => $city->name,
+            'district' => $district->name,
+            'village' => $village->name,
+        ];
     }
 
     private function authorizeOwner(Request $request, Address $address): void

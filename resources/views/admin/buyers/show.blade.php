@@ -5,7 +5,7 @@
     @endphp
 
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div><p class="text-sm font-extrabold uppercase tracking-widest text-primary">Detail Pembeli</p><h1 class="mt-1 text-3xl font-black text-slate-900">{{ $buyer->name }}</h1><p class="mt-1 text-slate-500">KSP-{{ str_pad((string) $buyer->id, 6, '0', STR_PAD_LEFT) }} · Terdaftar {{ $buyer->created_at->translatedFormat('d F Y') }}</p></div>
+        <div><p class="text-sm font-extrabold uppercase tracking-widest text-primary">Detail Pembeli</p><h1 class="mt-1 text-3xl font-black text-slate-900">{{ $buyer->name }}</h1><p class="mt-1 text-slate-500">TSH-{{ str_pad((string) $buyer->id, 6, '0', STR_PAD_LEFT) }} · Terdaftar {{ $buyer->created_at->translatedFormat('d F Y') }}</p></div>
         <div class="flex flex-wrap gap-2"><span class="inline-flex w-fit rounded-full px-3 py-2 text-xs font-extrabold uppercase tracking-wide {{ $buyer->is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">Akun {{ $buyer->is_active ? 'aktif' : 'nonaktif' }}</span><span class="inline-flex w-fit rounded-full px-3 py-2 text-xs font-extrabold uppercase tracking-wide {{ $status === 'verified' ? 'bg-emerald-100 text-emerald-700' : ($status === 'rejected' ? 'bg-red-100 text-red-700' : ($status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')) }}">{{ $verification?->statusLabel() ?? 'Belum Mengirim KTP' }}</span></div>
     </div>
 
@@ -30,7 +30,7 @@
                 @endif
             </section>
 
-            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white"><div class="border-b border-slate-100 p-5"><h2 class="font-black">Pesanan Terbaru</h2></div><div class="divide-y divide-slate-100">@forelse($buyer->orders as $order)<a href="{{ route('admin.orders.show', $order) }}" class="flex items-center justify-between gap-4 p-4 hover:bg-blue-50"><span><span class="block font-mono text-sm font-bold text-primary">{{ $order->invoice_number }}</span><span class="text-xs text-slate-500">{{ $order->statusLabel() }}</span></span><span class="font-black">Rp {{ number_format($order->total, 0, ',', '.') }}</span></a>@empty<p class="p-8 text-center text-sm text-slate-500">Belum ada pesanan.</p>@endforelse</div></section>
+            <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white"><div class="border-b border-slate-100 p-5"><h2 class="font-black">Pesanan Terbaru</h2></div><div class="divide-y divide-slate-100">@forelse($buyer->orders as $order)<a href="{{ route('admin.orders.show', $order) }}" class="flex items-center justify-between gap-4 p-4 hover:bg-blue-50"><span><span class="mb-2 block font-mono text-sm font-bold text-primary">{{ $order->invoice_number }}</span><x-status-badge :status="$order->status" /></span><span class="font-black">Rp {{ number_format($order->total, 0, ',', '.') }}</span></a>@empty<p class="p-8 text-center text-sm text-slate-500">Belum ada pesanan.</p>@endforelse</div></section>
         </div>
 
         <aside class="space-y-6">

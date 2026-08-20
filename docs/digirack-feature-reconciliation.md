@@ -55,7 +55,7 @@ Dokumen ini mencatat hasil audit terhadap `C:\laragon\www\digirack` dan keputusa
 | Katalog, detail, galeri, filter, stok, kategori | Sudah diadaptasi untuk satu seller. |
 | Cart, beli langsung, checkout item terpilih | Sudah diadaptasi. Checkout mensyaratkan akun aktif, KTP terverifikasi, alamat tersimpan, dan kurir aktif. |
 | Alamat dan ongkir | CRUD alamat manual sudah ada; ongkir hanya tarif flat Kurir Toko tanpa API eksternal. |
-| Paywuz API, webhook, dan sinkronisasi status | Sudah diadaptasi. Metode diambil dari API, webhook memeriksa HMAC/raw body, delivery ID, referensi, dan nominal; stok diproses idempoten hanya setelah `transaction.paid`. |
+| Paywuz API, webhook, dan sinkronisasi status | Sudah diadaptasi. Metode diambil dari API, webhook memeriksa HMAC/raw body, delivery ID, referensi, dan nominal; pembayaran pelanggan diproses idempoten saat `transaction.settlement`, sedangkan `transaction.paid` mencatat tahap saldo merchant berikutnya tanpa mengurangi stok kembali. |
 | Invoice, label, bukti tiba, dan histori status | Sudah diadaptasi untuk alur kurir internal. |
 | Wishlist, ulasan, balasan seller, dan notifikasi | Sudah diadaptasi. |
 | Profil, keamanan akun, lupa akun/password | Sudah diadaptasi dengan OTP dan Turnstile; recovery tersembunyi DigiRack tidak dibawa. |

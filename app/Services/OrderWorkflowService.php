@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
+use App\Models\OrderShippingProof;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Models\User;
@@ -56,6 +57,12 @@ class OrderWorkflowService
 
     public function transition(Order $order, OrderStatus $target, User $actor, ?string $note = null): Order
     {
+        if ($target === OrderStatus::OutForDelivery) {
+            throw ValidationException::withMessages([
+                'status' => 'Status dalam pengantaran wajib disertai bukti foto.',
+            ]);
+        }
+
         $updatedOrder = DB::transaction(function () use ($order, $target, $actor, $note) {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
             $from = $lockedOrder->status;
@@ -91,6 +98,60 @@ class OrderWorkflowService
         return $updatedOrder;
     }
 
+    public function markReady(Order $order, User $actor, ?string $note = null): Order
+    {
+        return $this->transition($order, OrderStatus::Ready, $actor, $note ?: 'Pesanan selesai diproses dan siap dikirim.');
+    }
+
+    /** @param list<string> $proofPaths */
+    public function markOutForDelivery(Order $order, User $actor, array $proofPaths, ?string $note = null): Order
+    {
+        return $this->transitionWithProof(
+            $order,
+            $actor,
+            OrderStatus::Ready,
+            OrderStatus::OutForDelivery,
+            ['dispatched_at' => now()],
+            OrderShippingProof::STAGE_DISPATCH,
+            $proofPaths,
+            'dispatch_proofs_uploaded',
+            $note ?: 'Admin mengunggah bukti paket mulai diantar oleh kurir toko.',
+        );
+    }
+
+    /** @param array<string, mixed> $updates */
+    private function transitionWithProof(
+        Order $order,
+        User $actor,
+        OrderStatus $requiredStatus,
+        OrderStatus $target,
+        array $updates,
+        string $proofStage,
+        array $proofPaths,
+        string $action,
+        string $historyNote,
+    ): Order {
+        $updatedOrder = DB::transaction(function () use ($order, $actor, $requiredStatus, $target, $updates, $proofStage, $proofPaths, $action, $historyNote) {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($lockedOrder->status !== $requiredStatus) {
+                throw ValidationException::withMessages([
+                    'status' => "Status {$lockedOrder->status->label()} tidak dapat diubah menjadi {$target->label()}.",
+                ]);
+            }
+
+            $lockedOrder->update(['status' => $target, ...$updates]);
+            $this->storeProofs($lockedOrder, $actor, $proofStage, $proofPaths, $historyNote);
+            $this->record($lockedOrder, $actor, $requiredStatus, $target, $action, $historyNote);
+
+            return $lockedOrder->fresh(['items', 'buyer', 'histories.actor']);
+        });
+
+        $this->notifications->statusChanged($updatedOrder);
+
+        return $updatedOrder;
+    }
+
     /** @return list<OrderStatus> */
     private function allowedTargets(Order $order): array
     {
@@ -103,9 +164,10 @@ class OrderWorkflowService
         };
     }
 
-    public function markDelivered(Order $order, User $actor, string $proofPath, ?string $note = null): Order
+    /** @param list<string> $proofPaths */
+    public function markDelivered(Order $order, User $actor, array $proofPaths, ?string $note = null): Order
     {
-        $updatedOrder = DB::transaction(function () use ($order, $actor, $proofPath, $note) {
+        $updatedOrder = DB::transaction(function () use ($order, $actor, $proofPaths, $note) {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
 
             if ($lockedOrder->status !== OrderStatus::OutForDelivery) {
@@ -118,17 +180,18 @@ class OrderWorkflowService
             $lockedOrder->update([
                 'status' => OrderStatus::Delivered,
                 'delivered_at' => now(),
-                'delivery_proof_path' => $proofPath,
-                'delivery_note' => $note,
             ]);
+
+            $historyNote = $note ?: 'Admin mengunggah bukti paket tiba.';
+            $this->storeProofs($lockedOrder, $actor, OrderShippingProof::STAGE_DELIVERY, $proofPaths, $historyNote);
 
             $this->record(
                 $lockedOrder,
                 $actor,
                 $from,
                 OrderStatus::Delivered,
-                'delivery_proof_uploaded',
-                $note ?: 'Admin mengunggah bukti paket tiba.',
+                'delivery_proofs_uploaded',
+                $historyNote,
             );
 
             return $lockedOrder->fresh(['items', 'buyer', 'histories.actor']);
@@ -137,6 +200,20 @@ class OrderWorkflowService
         $this->notifications->statusChanged($updatedOrder);
 
         return $updatedOrder;
+    }
+
+    /** @param list<string> $proofPaths */
+    private function storeProofs(Order $order, User $actor, string $stage, array $proofPaths, ?string $note): void
+    {
+        foreach ($proofPaths as $index => $path) {
+            $order->shippingProofs()->create([
+                'uploaded_by' => $actor->id,
+                'stage' => $stage,
+                'path' => $path,
+                'note' => $index === 0 ? $note : null,
+                'sort_order' => $index,
+            ]);
+        }
     }
 
     private function record(

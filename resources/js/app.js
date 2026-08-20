@@ -81,6 +81,76 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+const updateCartIndicators = (count) => {
+    const numericCount = Number.parseInt(count, 10) || 0;
+    const displayCount = numericCount > 99 ? '99+' : String(numericCount);
+
+    document.querySelectorAll('[data-header-cart]').forEach((link) => {
+        link.setAttribute('aria-label', `Buka keranjang, ${numericCount} produk`);
+    });
+
+    document.querySelectorAll('[data-cart-count]').forEach((badge) => {
+        badge.textContent = displayCount;
+        badge.classList.toggle('hidden', numericCount < 1);
+        badge.classList.toggle('grid', numericCount > 0);
+    });
+
+    document.querySelectorAll('[data-cart-count-text]').forEach((label) => {
+        label.textContent = numericCount > 0 ? `(${numericCount})` : '';
+    });
+};
+
+document.addEventListener('submit', async (event) => {
+    const form = event.target.closest('form[data-add-to-cart]');
+
+    if (! form) {
+        return;
+    }
+
+    event.preventDefault();
+    const button = event.submitter || form.querySelector('button[type="submit"], button:not([type])');
+    button?.setAttribute('disabled', 'disabled');
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        const payload = await response.json();
+
+        if (! response.ok) {
+            const validationMessage = Object.values(payload.errors || {}).flat()[0];
+            throw new Error(validationMessage || payload.message || 'Produk gagal ditambahkan ke keranjang.');
+        }
+
+        updateCartIndicators(payload.cart_count);
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: payload.message,
+            showConfirmButton: false,
+            timer: 1800,
+            timerProgressBar: true,
+        });
+    } catch (error) {
+        Swal.fire({
+            ...swalTheme,
+            icon: 'error',
+            title: 'Produk belum ditambahkan',
+            text: error.message,
+            confirmButtonText: 'Mengerti',
+        });
+    } finally {
+        button?.removeAttribute('disabled');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     const toast = document.querySelector('[data-flash-success]');
     const error = document.querySelector('[data-flash-error]');

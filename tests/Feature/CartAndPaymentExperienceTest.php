@@ -26,13 +26,43 @@ class CartAndPaymentExperienceTest extends TestCase
             ->assertSee('data-product-buy-now', false)
             ->assertSee('Beli Langsung')
             ->assertSee('data-product-add-cart', false)
+            ->assertSee('data-add-to-cart', false)
             ->assertSee('fa-cart-plus', false)
+            ->assertSee('data-cart-count', false)
             ->assertSeeInOrder(['data-header-cart', 'aria-label="Buka notifikasi"'], false);
 
         $this->actingAs($admin)
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertDontSee('data-header-cart', false);
+    }
+
+    public function test_adding_product_as_json_stays_on_page_and_returns_updated_cart_count(): void
+    {
+        $buyer = User::factory()->create();
+        $existingProduct = Product::factory()->create(['price' => 10000, 'stock' => 5, 'is_active' => true]);
+        $addedProduct = Product::factory()->create(['price' => 15000, 'stock' => 5, 'is_active' => true]);
+        CartItem::create([
+            'user_id' => $buyer->id,
+            'product_id' => $existingProduct->id,
+            'quantity' => 2,
+        ]);
+
+        $this->actingAs($buyer)
+            ->postJson(route('cart.store', $addedProduct), ['quantity' => 1])
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Produk ditambahkan ke keranjang.',
+                'cart_count' => 3,
+                'item_quantity' => 1,
+            ])
+            ->assertHeaderMissing('Location');
+
+        $this->assertDatabaseHas('cart_items', [
+            'user_id' => $buyer->id,
+            'product_id' => $addedProduct->id,
+            'quantity' => 1,
+        ]);
     }
 
     public function test_cart_uses_plus_minus_without_update_confirmation_and_rejects_zero_quantity(): void

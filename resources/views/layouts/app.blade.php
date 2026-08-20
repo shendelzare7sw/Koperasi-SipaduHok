@@ -54,7 +54,7 @@
                         @unless(auth()->user()->isAdmin())
                             <a href="{{ route('cart.index') }}" data-header-cart class="relative grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white/10 text-white transition hover:bg-white/20" aria-label="Buka keranjang, {{ $cartCount }} produk">
                                 <i class="fas fa-cart-shopping" aria-hidden="true"></i>
-                                @if($cartCount > 0)<span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>@endif
+                                <span data-cart-count class="absolute -right-1 -top-1 h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary {{ $cartCount > 0 ? 'grid' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
                             </a>
                         @endunless
                         @include('components.notification-dropdown')
@@ -71,7 +71,7 @@
                     @unless(auth()->user()->isAdmin())
                         <a href="{{ route('cart.index') }}" data-header-cart class="relative grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white/10 text-white transition hover:bg-white/20" aria-label="Buka keranjang, {{ $cartCount }} produk">
                             <i class="fas fa-cart-shopping" aria-hidden="true"></i>
-                            @if($cartCount > 0)<span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>@endif
+                            <span data-cart-count class="absolute -right-1 -top-1 h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary {{ $cartCount > 0 ? 'grid' : 'hidden' }}">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
                         </a>
                     @endunless
                     @include('components.notification-dropdown')
@@ -102,7 +102,7 @@
                         <form method="POST" action="{{ route('admin.logout') }}" data-confirm="Anda akan keluar dari panel Toko Sipaduhok." data-confirm-title="Keluar dari akun?" data-confirm-button="Ya, keluar">@csrf<button class="w-full rounded-lg px-3 py-2.5 text-left font-bold text-accent-yellow hover:bg-white/10">Keluar</button></form>
                     @else
                         <a href="{{ route('buyer.dashboard') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Dashboard</a>
-                        <a href="{{ route('cart.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Keranjang @if(($cartCount ?? 0) > 0)({{ $cartCount }})@endif</a>
+                        <a href="{{ route('cart.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Keranjang <span data-cart-count-text>{{ $cartCount > 0 ? '('.$cartCount.')' : '' }}</span></a>
                         <a href="{{ route('wishlist.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Wishlist</span>@if($wishlistCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $wishlistCount }}</span>@endif</a>
                         <a href="{{ route('orders.index') }}" class="rounded-lg px-3 py-2.5 hover:bg-white/10">Pesanan Saya</a>
                         <a href="{{ route('notifications.index') }}" class="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/10"><span>Notifikasi</span>@if($unreadNotificationCount > 0)<span class="rounded-full bg-accent-yellow px-2 py-0.5 text-[10px] font-black text-slate-950">{{ $unreadNotificationCount }}</span>@endif</a>

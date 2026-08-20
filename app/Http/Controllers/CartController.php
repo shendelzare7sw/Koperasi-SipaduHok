@@ -22,6 +22,10 @@ class CartController extends Controller
         $validated = $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
         abort_unless($product->is_active, 404);
 
+        if ($product->price < 1 || $product->stock < 1) {
+            return back()->withErrors(['quantity' => 'Produk belum dapat dibeli karena harga atau stok tidak tersedia.']);
+        }
+
         $item = CartItem::firstOrNew(['user_id' => $request->user()->id, 'product_id' => $product->id]);
         $newQuantity = ($item->exists ? $item->quantity : 0) + $validated['quantity'];
 
@@ -41,13 +45,17 @@ class CartController extends Controller
         $validated = $request->validate(['quantity' => ['required', 'integer', 'min:1']]);
         $cartItem->load('product');
 
+        if (! $cartItem->product || ! $cartItem->product->is_active || $cartItem->product->price < 1) {
+            return back()->withErrors(['quantity' => 'Produk sudah tidak tersedia untuk dibeli.']);
+        }
+
         if ($validated['quantity'] > $cartItem->product->stock) {
             return back()->withErrors(['quantity' => 'Jumlah melebihi stok yang tersedia.']);
         }
 
         $cartItem->update($validated);
 
-        return back()->with('success', 'Jumlah produk diperbarui.');
+        return back();
     }
 
     public function destroy(Request $request, CartItem $cartItem): RedirectResponse
@@ -55,6 +63,6 @@ class CartController extends Controller
         abort_unless($cartItem->user_id === $request->user()->id, 403);
         $cartItem->delete();
 
-        return back()->with('success', 'Produk dihapus dari keranjang.');
+        return back();
     }
 }

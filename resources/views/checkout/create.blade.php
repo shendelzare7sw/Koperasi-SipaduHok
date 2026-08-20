@@ -13,6 +13,7 @@
 
     <form method="POST" action="{{ route('checkout.store') }}" class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]" x-data="{ selectedAddress: @js($selectedAddressId) }" data-confirm="Periksa kembali alamat, data siswa, kurir, dan metode pembayaran." data-confirm-title="Buat pesanan ini?" data-confirm-button="Ya, buat pesanan">
         @csrf
+        <input type="hidden" name="payment_method" value="payment_gateway">
         @foreach($items as $item)
             <input type="hidden" name="cart_item_ids[]" value="{{ $item->id }}">
         @endforeach
@@ -76,16 +77,14 @@
             <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-primary"><i class="fas fa-wallet" aria-hidden="true"></i></span><h2 class="text-lg font-black text-slate-900">Metode Pembayaran</h2></div>
                 @if($paymentStatus['ready'])
-                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><i class="fas fa-shield-halved mt-0.5" aria-hidden="true"></i><p><strong>Midtrans {{ $paymentStatus['environment'] === 'production' ? 'Production' : 'Sandbox' }} aktif.</strong><br>Status pembayaran diverifikasi melalui callback server-to-server.</p></div>
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><i class="fas fa-shield-halved mt-0.5" aria-hidden="true"></i><p><strong>Payment gateway aktif.</strong><br>Status pembayaran diverifikasi melalui callback server-to-server.</p></div>
                 @elseif($paymentStatus['enabled'])
-                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><i class="fas fa-triangle-exclamation mt-0.5" aria-hidden="true"></i><p><strong>Checkout sementara tidak tersedia.</strong><br>Konfigurasi Midtrans belum lengkap dan perlu diperbaiki admin.</p></div>
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><i class="fas fa-triangle-exclamation mt-0.5" aria-hidden="true"></i><p><strong>Checkout sementara tidak tersedia.</strong><br>Konfigurasi payment gateway belum lengkap dan perlu diperbaiki admin.</p></div>
                 @else
-                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"><i class="fas fa-flask mt-0.5" aria-hidden="true"></i><p><strong>Mode pembayaran development.</strong><br>Transaksi nyata baru tersedia setelah Midtrans diaktifkan admin.</p></div>
+                    <div class="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"><i class="fas fa-flask mt-0.5" aria-hidden="true"></i><p><strong>Mode pembayaran development.</strong><br>Transaksi nyata baru tersedia setelah payment gateway diaktifkan admin.</p></div>
                 @endif
-                <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                    @foreach($paymentMethods as $method)
-                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-primary/40"><input type="radio" name="payment_method" value="{{ $method->value }}" required @checked(old('payment_method', 'qris') === $method->value) class="text-primary focus:ring-primary"> <span class="font-bold">{{ $method->label() }}</span></label>
-                    @endforeach
+                <div data-payment-gateway-method class="mt-4 rounded-xl border border-primary/20 bg-blue-50 p-4">
+                    <div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white"><i class="fas fa-credit-card" aria-hidden="true"></i></span><div><p class="font-black text-slate-900">Pilih kanal saat membayar</p><p class="mt-1 text-xs leading-5 text-slate-600">QRIS, transfer bank, virtual account, e-wallet, kartu, dan kanal lain akan ditampilkan langsung oleh payment gateway sesuai kanal yang aktif.</p></div></div>
                 </div>
                 <p class="mt-3 text-xs leading-5 text-slate-500">Pembayaran diproses langsung atas nama Toko Sipaduhok. Tidak ada saldo tertahan atau escrow.</p>
             </section>

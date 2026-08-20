@@ -19,6 +19,11 @@
     @stack('head')
 </head>
 <body class="min-h-screen bg-cream/30 text-slate-800 antialiased">
+    @php
+        $cartCount = auth()->check() && ! auth()->user()->isAdmin()
+            ? auth()->user()->cartItems()->sum('quantity')
+            : 0;
+    @endphp
     <header x-data="{ open: false }" class="border-b-4 border-accent-yellow bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/15">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between gap-3 py-4">
@@ -44,17 +49,14 @@
                         <a href="{{ route('buyer.dashboard') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Dashboard</a>
                         <a href="{{ route('orders.index') }}" class="rounded-full px-3 py-2 hover:bg-white/10">Pesanan Saya</a>
                         <a href="{{ route('wishlist.index') }}" class="relative rounded-full px-3 py-2 hover:bg-white/10" aria-label="Wishlist"><i class="fas fa-heart" aria-hidden="true"></i>@if($wishlistCount > 0)<span class="ml-1 inline-grid min-w-5 place-items-center rounded-full bg-accent-yellow px-1.5 py-0.5 text-[10px] font-black text-slate-950">{{ $wishlistCount }}</span>@endif</a>
-                        <a href="{{ route('cart.index') }}" class="relative rounded-full px-3 py-2 hover:bg-white/10">
-                            Keranjang
-                            @php
-                                $cartCount = auth()->user()->cartItems()->sum('quantity');
-                            @endphp
-                            @if($cartCount > 0)
-                                <span class="ml-1 inline-grid min-w-5 place-items-center rounded-full bg-accent-yellow px-1.5 py-0.5 text-[10px] font-black text-slate-950">{{ $cartCount }}</span>
-                            @endif
-                        </a>
                     @endif
                     <span class="ml-2 flex items-center gap-2 border-l border-white/20 pl-3">
+                        @unless(auth()->user()->isAdmin())
+                            <a href="{{ route('cart.index') }}" data-header-cart class="relative grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white/10 text-white transition hover:bg-white/20" aria-label="Buka keranjang, {{ $cartCount }} produk">
+                                <i class="fas fa-cart-shopping" aria-hidden="true"></i>
+                                @if($cartCount > 0)<span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>@endif
+                            </a>
+                        @endunless
                         @include('components.notification-dropdown')
                         @include('components.account-dropdown')
                     </span>
@@ -66,6 +68,12 @@
 
             <div class="ml-auto flex shrink-0 items-center gap-2 lg:hidden" data-mobile-header-actions>
                 @auth
+                    @unless(auth()->user()->isAdmin())
+                        <a href="{{ route('cart.index') }}" data-header-cart class="relative grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white/10 text-white transition hover:bg-white/20" aria-label="Buka keranjang, {{ $cartCount }} produk">
+                            <i class="fas fa-cart-shopping" aria-hidden="true"></i>
+                            @if($cartCount > 0)<span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent-yellow px-1 text-[10px] font-black text-slate-950 ring-2 ring-primary">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>@endif
+                        </a>
+                    @endunless
                     @include('components.notification-dropdown')
                     @include('components.account-dropdown')
                 @endauth

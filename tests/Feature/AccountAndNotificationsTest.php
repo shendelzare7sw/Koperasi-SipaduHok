@@ -100,7 +100,13 @@ class AccountAndNotificationsTest extends TestCase
 
         $this->actingAs($buyer)
             ->get(route('buyer.dashboard'))
-            ->assertSee('Alamat Tersimpan');
+            ->assertSee('Alamat Tersimpan')
+            ->assertSee('data-header-cart', false)
+            ->assertSeeInOrder(['data-header-cart', 'aria-label="Buka notifikasi"'], false);
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertDontSee('data-header-cart', false);
     }
 
     public function test_brand_logo_is_unboxed_and_child_pages_have_explicit_back_navigation(): void
@@ -145,7 +151,7 @@ class AccountAndNotificationsTest extends TestCase
             'shipping_cost' => $courier->fee,
             'delivery_address' => 'Alamat pembeli',
             'status' => OrderStatus::PendingPayment,
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'payment_status' => PaymentStatus::Pending,
             'subtotal' => 10000,
             'total' => 20000,

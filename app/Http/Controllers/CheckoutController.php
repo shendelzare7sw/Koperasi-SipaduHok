@@ -31,6 +31,10 @@ class CheckoutController extends Controller
 
         abort_unless($product->is_active, 404);
 
+        if ($product->price < 1 || $product->stock < 1) {
+            return back()->withErrors(['quantity' => 'Produk belum dapat dibeli karena harga atau stok tidak tersedia.']);
+        }
+
         if ($validated['quantity'] > $product->stock) {
             return back()->withErrors(['quantity' => 'Jumlah melebihi stok yang tersedia.']);
         }
@@ -51,6 +55,12 @@ class CheckoutController extends Controller
             ->unique()
             ->values();
 
+        if ($request->boolean('selected') && $selectedIds->isEmpty()) {
+            return redirect()->route('cart.index')->withErrors([
+                'cart' => 'Pilih minimal satu produk sebelum checkout.',
+            ]);
+        }
+
         $items = $request->user()->cartItems()
             ->with('product')
             ->when($selectedIds->isNotEmpty(), fn ($query) => $query->whereIn('id', $selectedIds))
@@ -61,6 +71,18 @@ class CheckoutController extends Controller
                 'cart' => $selectedIds->isNotEmpty()
                     ? 'Produk yang dipilih tidak ditemukan di keranjang.'
                     : 'Keranjang masih kosong.',
+            ]);
+        }
+
+        $hasInvalidItem = $items->contains(fn (CartItem $item) => ! $item->product
+            || ! $item->product->is_active
+            || $item->quantity < 1
+            || $item->quantity > $item->product->stock
+            || $item->product->price < 1);
+
+        if ($hasInvalidItem) {
+            return redirect()->route('cart.index')->withErrors([
+                'cart' => 'Periksa kembali jumlah, harga, dan stok produk sebelum checkout.',
             ]);
         }
 
@@ -84,7 +106,6 @@ class CheckoutController extends Controller
             'items' => $items,
             'subtotal' => $items->sum('subtotal'),
             'courier' => Courier::where('code', 'main')->where('is_active', true)->first(),
-            'paymentMethods' => PaymentMethod::cases(),
             'addresses' => $addresses,
             'paymentStatus' => $payments->status(),
         ]);
@@ -149,10 +170,18 @@ class CheckoutController extends Controller
             $subtotal = 0;
             foreach ($cartItems as $cartItem) {
                 $product = $products->get($cartItem->product_id);
-                if (! $product || ! $product->is_active || $cartItem->quantity > $product->stock) {
-                    throw ValidationException::withMessages(['cart' => 'Ada produk yang tidak aktif atau stoknya berubah.']);
+                if (! $product
+                    || ! $product->is_active
+                    || $cartItem->quantity < 1
+                    || $cartItem->quantity > $product->stock
+                    || $product->price < 1) {
+                    throw ValidationException::withMessages(['cart' => 'Ada produk dengan jumlah, harga, atau stok yang tidak valid.']);
                 }
                 $subtotal += $product->price * $cartItem->quantity;
+            }
+
+            if ($subtotal < 1) {
+                throw ValidationException::withMessages(['cart' => 'Subtotal produk harus lebih besar dari Rp 0.']);
             }
 
             $courier = Courier::query()->where('code', 'main')->where('is_active', true)->lockForUpdate()->first();

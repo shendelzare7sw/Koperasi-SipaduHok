@@ -26,7 +26,7 @@ class PageController extends Controller
     public function payment(): View
     {
         return $this->page('Cara Pembayaran', 'Pembayaran langsung', [
-            ['title' => 'QRIS dan Virtual Account', 'paragraphs' => ['Pembeli memilih QRIS atau Virtual Account saat checkout. Ketika payment gateway aktif, pembayaran diproses langsung atas nama Toko Sipaduhok dan status diperbarui otomatis melalui sistem gateway.']],
+            ['title' => 'Kanal pembayaran digital', 'paragraphs' => ['Saat membayar, pembeli memilih kanal yang tersedia langsung pada halaman payment gateway, seperti QRIS, transfer bank, e-wallet, atau kanal lain yang sedang aktif. Status pembayaran diperbarui otomatis melalui sistem gateway.']],
             ['title' => 'Ketentuan pembayaran', 'items' => ['Nominal yang dibayar harus sama dengan total pada invoice.', 'Pesanan diproses setelah pembayaran dinyatakan lunas.', 'Toko tidak menggunakan escrow, wallet seller, atau penitipan dana antar pengguna.', 'Jika status belum berubah setelah pembayaran, gunakan tombol cek status atau hubungi admin dengan nomor invoice.']],
         ]);
     }

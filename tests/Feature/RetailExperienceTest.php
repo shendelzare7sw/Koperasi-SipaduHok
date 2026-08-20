@@ -91,7 +91,7 @@ class RetailExperienceTest extends TestCase
             'address_id' => $address->id,
             'student_name' => 'Siswa Contoh',
             'class_name' => 'VIII-A',
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'cart_item_ids' => [$cartItem->id],
         ])->assertRedirect();
 
@@ -222,7 +222,7 @@ class RetailExperienceTest extends TestCase
             'shipping_cost' => $courier->fee,
             'delivery_address' => 'Alamat pembeli',
             'status' => OrderStatus::Completed,
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'payment_status' => PaymentStatus::Paid,
             'subtotal' => 20000,
             'total' => 30000,

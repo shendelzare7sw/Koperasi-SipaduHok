@@ -49,7 +49,7 @@ class OrderLifecycleTest extends TestCase
             'address_id' => $address->id,
             'student_name' => 'Siswa Contoh',
             'class_name' => 'VIII-A',
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'notes' => 'Antar setelah jam sekolah.',
             'cart_item_ids' => [$cartItem->id],
         ]);
@@ -119,7 +119,7 @@ class OrderLifecycleTest extends TestCase
             'shipping_cost' => $courier->fee,
             'delivery_address' => 'Alamat pemilik',
             'status' => OrderStatus::PendingPayment,
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'payment_status' => PaymentStatus::Pending,
             'subtotal' => 10000,
             'total' => 20000,

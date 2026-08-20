@@ -51,16 +51,16 @@
                         <label class="block text-sm font-bold text-slate-700">Jumlah
                             <input x-model.number="quantity" type="number" min="1" max="{{ $product->stock }}" class="mt-2 w-24 rounded-xl border border-slate-300 px-4 py-3">
                         </label>
-                        <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                            <form method="POST" action="{{ route('cart.store', $product) }}" data-confirm="Produk akan ditambahkan sesuai jumlah yang dipilih." data-confirm-title="Tambahkan ke keranjang?" data-confirm-button="Ya, tambahkan">
+                        <div class="mt-3 grid grid-cols-[1fr_auto] gap-3">
+                            <form method="POST" action="{{ route('checkout.buy-now', $product) }}">
                                 @csrf
                                 <input type="hidden" name="quantity" :value="quantity" value="1">
-                                <button @disabled($product->stock < 1) class="w-full rounded-xl border-2 border-primary px-5 py-3 font-extrabold text-primary transition hover:border-secondary hover:text-secondary disabled:cursor-not-allowed disabled:opacity-50">Masukkan Keranjang</button>
+                                <button @disabled($product->stock < 1 || $product->price < 1) class="w-full rounded-xl bg-primary px-5 py-3 font-extrabold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">Beli Langsung</button>
                             </form>
-                            <form method="POST" action="{{ route('checkout.buy-now', $product) }}" data-confirm="Anda akan langsung menuju checkout untuk produk ini." data-confirm-title="Beli produk sekarang?" data-confirm-button="Ya, lanjut checkout">
+                            <form method="POST" action="{{ route('cart.store', $product) }}">
                                 @csrf
                                 <input type="hidden" name="quantity" :value="quantity" value="1">
-                                <button @disabled($product->stock < 1) class="w-full rounded-xl bg-primary px-5 py-3 font-extrabold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50">Beli Langsung</button>
+                                <button @disabled($product->stock < 1 || $product->price < 1) class="grid h-12 w-12 place-items-center rounded-xl border-2 border-primary text-primary transition hover:border-secondary hover:bg-blue-50 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-50" aria-label="Masukkan produk ke keranjang" title="Masukkan ke keranjang"><i class="fas fa-cart-plus" aria-hidden="true"></i></button>
                             </form>
                         </div>
                     </div>

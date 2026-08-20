@@ -4,14 +4,10 @@ namespace App\Enums;
 
 enum PaymentMethod: string
 {
-    case Qris = 'qris';
-    case VirtualAccount = 'virtual_account';
+    case PaymentGateway = 'payment_gateway';
 
     public function label(): string
     {
-        return match ($this) {
-            self::Qris => 'QRIS',
-            self::VirtualAccount => 'Virtual Account',
-        };
+        return 'Payment Gateway';
     }
 }

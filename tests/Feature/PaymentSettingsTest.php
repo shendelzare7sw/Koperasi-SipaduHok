@@ -22,18 +22,18 @@ class PaymentSettingsTest extends TestCase
         $this->actingAs($admin)->put(route('admin.settings.payment.update'), [
             'is_active' => '1',
             'environment' => 'sandbox',
-            'server_key' => 'SB-Mid-server-panel-secret',
-            'client_key' => 'SB-Mid-client-panel-key',
+            'server_key' => 'Mid-server-panel-secret',
+            'client_key' => 'Mid-client-panel-key',
             'merchant_id' => 'G123456789',
             'current_password' => 'password',
         ])->assertRedirect();
 
         $setting = PaymentSetting::firstOrFail();
         $raw = DB::table('payment_settings')->first();
-        $this->assertSame('SB-Mid-server-panel-secret', $setting->server_key);
-        $this->assertSame('SB-Mid-client-panel-key', $setting->client_key);
-        $this->assertNotSame('SB-Mid-server-panel-secret', $raw->server_key);
-        $this->assertNotSame('SB-Mid-client-panel-key', $raw->client_key);
+        $this->assertSame('Mid-server-panel-secret', $setting->server_key);
+        $this->assertSame('Mid-client-panel-key', $setting->client_key);
+        $this->assertNotSame('Mid-server-panel-secret', $raw->server_key);
+        $this->assertNotSame('Mid-client-panel-key', $raw->client_key);
         $this->assertSame($admin->id, $setting->updated_by);
 
         $configuration = app(PaymentConfiguration::class);
@@ -44,11 +44,11 @@ class PaymentSettingsTest extends TestCase
             ->assertOk()
             ->assertSee('Siap menerima pembayaran')
             ->assertSee(route('payments.midtrans.notification'))
-            ->assertDontSee('SB-Mid-server-panel-secret')
-            ->assertDontSee('SB-Mid-client-panel-key');
+            ->assertDontSee('Mid-server-panel-secret')
+            ->assertDontSee('Mid-client-panel-key');
     }
 
-    public function test_payment_panel_requires_admin_password_and_matching_environment_keys(): void
+    public function test_payment_panel_requires_admin_password(): void
     {
         $admin = User::factory()->admin()->create();
 
@@ -59,14 +59,6 @@ class PaymentSettingsTest extends TestCase
             'client_key' => 'SB-Mid-client-wrong-environment',
             'current_password' => 'wrong-password',
         ])->assertSessionHasErrors(['current_password']);
-
-        $this->put(route('admin.settings.payment.update'), [
-            'is_active' => '1',
-            'environment' => 'production',
-            'server_key' => 'SB-Mid-server-wrong-environment',
-            'client_key' => 'SB-Mid-client-wrong-environment',
-            'current_password' => 'password',
-        ])->assertSessionHasErrors(['server_key', 'client_key']);
 
         $this->assertDatabaseCount('payment_settings', 0);
     }

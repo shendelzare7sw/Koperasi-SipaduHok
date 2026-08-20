@@ -195,7 +195,7 @@ class ProductImportController extends Controller
             $validator = Validator::make($row, [
                 'name' => ['required', 'string', 'max:255', Rule::unique('products', 'name')],
                 'description' => ['nullable', 'string', 'max:10000'],
-                'price' => ['required', 'integer', 'min:0', 'max:999999999999'],
+                'price' => ['required', 'integer', 'min:1', 'max:999999999999'],
                 'stock' => ['required', 'integer', 'min:0', 'max:1000000000'],
                 'category' => ['required', Rule::in(array_keys(Product::CATEGORIES))],
                 'custom_category' => ['nullable', 'required_if:category,lainnya', 'prohibited_unless:category,lainnya', 'string', 'max:100'],
@@ -207,7 +207,7 @@ class ProductImportController extends Controller
                 'description.max' => 'Deskripsi maksimal 10.000 karakter.',
                 'price.required' => 'Harga wajib diisi.',
                 'price.integer' => 'Harga harus berupa bilangan bulat tanpa Rp, titik, atau koma.',
-                'price.min' => 'Harga tidak boleh negatif.',
+                'price.min' => 'Harga produk harus lebih besar dari Rp 0.',
                 'price.max' => 'Harga terlalu besar.',
                 'stock.required' => 'Stok wajib diisi.',
                 'stock.integer' => 'Stok harus berupa bilangan bulat.',

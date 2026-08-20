@@ -3,7 +3,6 @@
 namespace App\Services\Payments;
 
 use App\Contracts\PaymentGateway;
-use App\Enums\PaymentMethod;
 use App\Models\Order;
 use Illuminate\Support\Str;
 use Midtrans\Config;
@@ -35,10 +34,6 @@ class MidtransPaymentGateway implements PaymentGateway
             ];
         }
 
-        $enabledPayments = $order->payment_method === PaymentMethod::Qris
-            ? ['qris']
-            : ['bca_va', 'bni_va', 'bri_va', 'permata_va', 'other_va'];
-
         $token = Snap::getSnapToken([
             'transaction_details' => [
                 'order_id' => $order->invoice_number,
@@ -55,7 +50,6 @@ class MidtransPaymentGateway implements PaymentGateway
                     'address' => Str::limit($order->delivery_address, 200, ''),
                 ],
             ],
-            'enabled_payments' => $enabledPayments,
             'callbacks' => [
                 'finish' => route('orders.show', $order),
             ],

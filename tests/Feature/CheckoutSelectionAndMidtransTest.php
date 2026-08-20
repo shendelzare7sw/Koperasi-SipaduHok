@@ -99,7 +99,7 @@ class CheckoutSelectionAndMidtransTest extends TestCase
             'address_id' => $address->id,
             'student_name' => 'Siswa',
             'class_name' => 'VII-A',
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'cart_item_ids' => [$selectedItem->id],
         ])->assertRedirect();
 
@@ -129,7 +129,7 @@ class CheckoutSelectionAndMidtransTest extends TestCase
             'shipping_cost' => 10000,
             'delivery_address' => 'Alamat pengiriman',
             'status' => OrderStatus::PendingPayment,
-            'payment_method' => 'qris',
+            'payment_method' => 'payment_gateway',
             'payment_gateway' => 'midtrans',
             'payment_status' => PaymentStatus::Pending,
             'payment_reference' => 'KSP-TEST-MIDTRANS',

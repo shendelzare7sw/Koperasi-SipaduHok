@@ -65,7 +65,7 @@
 
                 <label class="text-sm font-semibold">Server Key
                     <span class="relative mt-1 block">
-                        <input name="server_key" :type="showServer ? 'text' : 'password'" maxlength="255" autocomplete="new-password" placeholder="{{ $status['server_key_configured'] ? 'Tersimpan — kosongkan jika tidak diganti' : 'SB-Mid-server-...' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-14 font-mono text-sm">
+                        <input name="server_key" :type="showServer ? 'text' : 'password'" maxlength="255" autocomplete="new-password" placeholder="{{ $status['server_key_configured'] ? 'Tersimpan — kosongkan jika tidak diganti' : 'Mid-server-... atau SB-Mid-server-...' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-14 font-mono text-sm">
                         <button type="button" @click="showServer = ! showServer" class="absolute inset-y-0 right-0 grid w-12 place-items-center text-primary" :aria-label="showServer ? 'Sembunyikan Server Key' : 'Tampilkan Server Key'"><i class="fas" :class="showServer ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i></button>
                     </span>
                     <span class="mt-1 block text-xs font-normal text-red-500">Rahasia. Nilai tersimpan tidak pernah ditampilkan kembali.</span>
@@ -73,14 +73,14 @@
 
                 <label class="text-sm font-semibold">Client Key
                     <span class="relative mt-1 block">
-                        <input name="client_key" :type="showClient ? 'text' : 'password'" maxlength="255" autocomplete="new-password" placeholder="{{ $status['client_key_configured'] ? 'Tersimpan — kosongkan jika tidak diganti' : 'SB-Mid-client-...' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-14 font-mono text-sm">
+                        <input name="client_key" :type="showClient ? 'text' : 'password'" maxlength="255" autocomplete="new-password" placeholder="{{ $status['client_key_configured'] ? 'Tersimpan — kosongkan jika tidak diganti' : 'Mid-client-... atau SB-Mid-client-...' }}" class="w-full rounded-xl border border-slate-300 px-4 py-3 pr-14 font-mono text-sm">
                         <button type="button" @click="showClient = ! showClient" class="absolute inset-y-0 right-0 grid w-12 place-items-center text-primary" :aria-label="showClient ? 'Sembunyikan Client Key' : 'Tampilkan Client Key'"><i class="fas" :class="showClient ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i></button>
                     </span>
                     <span class="mt-1 block text-xs font-normal text-slate-400">Digunakan Snap.js pada halaman pembayaran.</span>
                 </label>
 
                 <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-800 sm:col-span-2">
-                    <strong>Catatan rotasi key:</strong> ubah key di panel ini setelah key yang sama aktif di dashboard Midtrans. Mengganti Server Key dapat membuat callback transaksi lama gagal diverifikasi.
+                    <strong>Catatan key:</strong> salin Server Key dan Client Key persis dari environment yang dipilih di dashboard Midtrans. Sistem tidak menebak environment dari awalan key. Mengganti Server Key dapat membuat callback transaksi lama gagal diverifikasi.
                 </div>
 
                 <label x-data class="text-sm font-semibold sm:col-span-2">Konfirmasi kata sandi admin

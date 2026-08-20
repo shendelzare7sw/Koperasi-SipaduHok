@@ -141,13 +141,14 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['required', 'integer', 'min:0'],
+            'price' => ['required', 'integer', 'min:1'],
             'stock' => ['required', 'integer', 'min:0'],
             'category' => ['required', Rule::in(array_keys(Product::CATEGORIES))],
             'custom_category' => ['nullable', 'required_if:category,lainnya', 'string', 'max:100'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
         ], [
+            'price.min' => 'Harga produk harus lebih besar dari Rp 0.',
             'custom_category.required_if' => 'Tuliskan nama kategori tambahan untuk pilihan Lainnya.',
             'custom_category.max' => 'Nama kategori tambahan maksimal 100 karakter.',
             'images.*.image' => 'Foto produk harus berupa gambar yang valid.',

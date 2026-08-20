@@ -40,15 +40,15 @@
             @auth
                 @if(! auth()->user()->isAdmin())
                     <div class="grid grid-cols-[1fr_auto] gap-2">
-                        <form method="POST" action="{{ route('cart.store', $product) }}" data-confirm="{{ $product->name }} akan ditambahkan ke keranjang." data-confirm-title="Tambahkan ke keranjang?" data-confirm-button="Ya, tambahkan">
+                        <form method="POST" action="{{ route('checkout.buy-now', $product) }}">
                             @csrf
                             <input type="hidden" name="quantity" value="1">
-                            <button @disabled($product->stock < 1) class="w-full rounded-xl border border-primary px-3 py-2.5 text-xs font-extrabold text-primary transition hover:border-secondary hover:text-secondary disabled:cursor-not-allowed disabled:opacity-40" aria-label="Masukkan {{ $product->name }} ke keranjang">+ Keranjang</button>
+                            <button data-product-buy-now @disabled($product->stock < 1 || $product->price < 1) class="w-full rounded-xl bg-primary px-3 py-2.5 text-xs font-extrabold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40">Beli Langsung</button>
                         </form>
-                        <form method="POST" action="{{ route('checkout.buy-now', $product) }}" data-confirm="Anda akan langsung menuju checkout untuk {{ $product->name }}." data-confirm-title="Beli produk sekarang?" data-confirm-button="Ya, lanjut checkout">
+                        <form method="POST" action="{{ route('cart.store', $product) }}">
                             @csrf
                             <input type="hidden" name="quantity" value="1">
-                            <button @disabled($product->stock < 1) class="rounded-xl bg-primary px-3 py-2.5 text-xs font-extrabold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40">Beli</button>
+                            <button data-product-add-cart @disabled($product->stock < 1 || $product->price < 1) class="grid h-10 w-10 place-items-center rounded-xl border border-primary text-primary transition hover:border-secondary hover:bg-blue-50 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-40" aria-label="Masukkan {{ $product->name }} ke keranjang" title="Masukkan ke keranjang"><i class="fas fa-cart-plus" aria-hidden="true"></i></button>
                         </form>
                     </div>
                 @else

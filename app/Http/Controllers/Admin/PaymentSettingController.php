@@ -45,7 +45,6 @@ class PaymentSettingController extends Controller
 
         $this->validateCredentials(
             $request->boolean('is_active'),
-            $isProduction,
             $serverKey,
             $clientKey,
         );
@@ -78,7 +77,6 @@ class PaymentSettingController extends Controller
 
     private function validateCredentials(
         bool $isActive,
-        bool $isProduction,
         ?string $serverKey,
         ?string $clientKey,
     ): void {
@@ -90,18 +88,6 @@ class PaymentSettingController extends Controller
 
         if ($isActive && blank($clientKey)) {
             $errors['client_key'] = 'Client Key wajib tersedia sebelum Midtrans diaktifkan.';
-        }
-
-        if (filled($serverKey) && $isProduction === str_starts_with($serverKey, 'SB-')) {
-            $errors['server_key'] = $isProduction
-                ? 'Server Key Sandbox tidak dapat dipakai pada mode Production.'
-                : 'Mode Sandbox harus menggunakan Server Key Sandbox (awalan SB-).';
-        }
-
-        if (filled($clientKey) && $isProduction === str_starts_with($clientKey, 'SB-')) {
-            $errors['client_key'] = $isProduction
-                ? 'Client Key Sandbox tidak dapat dipakai pada mode Production.'
-                : 'Mode Sandbox harus menggunakan Client Key Sandbox (awalan SB-).';
         }
 
         if ($errors) {

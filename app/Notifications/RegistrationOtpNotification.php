@@ -2,11 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\UsesOtpMailSender;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class RegistrationOtpNotification extends Notification
 {
+    use UsesOtpMailSender;
+
     public function __construct(
         public readonly string $code,
         public readonly string $name,
@@ -22,8 +25,10 @@ class RegistrationOtpNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $appName = config('app.name', 'Toko Sipaduhok');
+        [$fromAddress, $fromName] = $this->otpSender();
 
         return (new MailMessage)
+            ->from($fromAddress, $fromName)
             ->subject('Kode OTP Pendaftaran '.$appName)
             ->greeting('Halo '.$this->name.',')
             ->line('Gunakan kode OTP berikut untuk menyelesaikan pendaftaran akun pembeli:')

@@ -67,6 +67,19 @@ class PasswordAndPublicInformationTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_recovery_otp_uses_current_smtp_email_as_sender(): void
+    {
+        config([
+            'mail.from.address' => 'smtp-lama@example.test',
+            'mail.from.name' => 'Toko Sipaduhok',
+            'mail.mailers.smtp.username' => 'smtp-baru@example.test',
+        ]);
+
+        $message = (new AccountRecoveryOtpNotification('123456', 'Pembeli'))->toMail(new AnonymousNotifiable);
+
+        $this->assertSame(['smtp-baru@example.test', 'Toko Sipaduhok'], $message->from);
+    }
+
     public function test_public_information_and_legal_pages_are_available(): void
     {
         $pages = [

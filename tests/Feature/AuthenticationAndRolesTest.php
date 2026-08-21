@@ -108,6 +108,19 @@ class AuthenticationAndRolesTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => 'baru@example.test']);
     }
 
+    public function test_registration_otp_uses_current_smtp_email_as_sender(): void
+    {
+        config([
+            'mail.from.address' => 'smtp-lama@example.test',
+            'mail.from.name' => 'Toko Sipaduhok',
+            'mail.mailers.smtp.username' => 'smtp-baru@example.test',
+        ]);
+
+        $message = (new RegistrationOtpNotification('123456', 'Pembeli'))->toMail(new AnonymousNotifiable);
+
+        $this->assertSame(['smtp-baru@example.test', 'Toko Sipaduhok'], $message->from);
+    }
+
     public function test_role_middleware_separates_admin_and_buyer_areas(): void
     {
         $buyer = User::factory()->create();

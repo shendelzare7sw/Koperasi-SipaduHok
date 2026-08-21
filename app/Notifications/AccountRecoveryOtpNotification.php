@@ -2,11 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\UsesOtpMailSender;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class AccountRecoveryOtpNotification extends Notification
 {
+    use UsesOtpMailSender;
+
     public function __construct(
         public readonly string $code,
         public readonly string $name,
@@ -21,7 +24,10 @@ class AccountRecoveryOtpNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        [$fromAddress, $fromName] = $this->otpSender();
+
         return (new MailMessage)
+            ->from($fromAddress, $fromName)
             ->subject('Kode OTP Pemulihan Akun Toko Sipaduhok')
             ->greeting('Halo '.$this->name.',')
             ->line('Kami menerima permintaan pemulihan akun Anda. Gunakan kode OTP berikut:')

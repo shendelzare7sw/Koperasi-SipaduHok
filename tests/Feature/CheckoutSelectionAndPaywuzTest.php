@@ -193,6 +193,77 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
         $this->assertDatabaseCount('orders', 1);
     }
 
+    public function test_buyer_can_change_pending_paywuz_payment_method_without_new_order(): void
+    {
+        $apiKey = $this->enablePaywuz();
+        [$buyer] = $this->buyerWithAddress(false);
+        $product = Product::factory()->create(['stock' => 10]);
+        $order = $this->paywuzOrder($buyer, $product);
+        $order->update([
+            'payment_url' => 'https://paywuz.id/pay/old-transaction',
+            'gateway_total' => 50640,
+        ]);
+
+        Http::fake([
+            'https://api.paywuz.id/v1/transactions/KSP-TEST-PAYWUZ' => Http::response(['data' => [
+                'id' => $order->payment_reference,
+                'orderId' => $order->invoice_number,
+                'amount' => $order->total,
+                'totalPayment' => $order->gateway_total,
+                'paymentMethod' => 'QRIS',
+                'paymentUrl' => $order->payment_url,
+                'status' => 'pending',
+            ]]),
+            'https://api.paywuz.id/v1/payment-methods' => Http::response(['data' => [
+                ['code' => 'QRIS', 'name' => 'QRIS', 'type' => 'qris', 'fee' => ['flatIdr' => 290, 'percentBps' => 70], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
+                ['code' => 'VA', 'name' => 'Virtual Account (Pilih Bank)', 'type' => 'meta', 'fee' => ['flatIdr' => 0, 'percentBps' => 0], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
+            ]]),
+            'https://api.paywuz.id/v1/transactions/KSP-TEST-PAYWUZ/cancel' => Http::response(['data' => [
+                'id' => $order->payment_reference,
+                'orderId' => $order->invoice_number,
+                'status' => 'cancelled',
+            ]]),
+            'https://api.paywuz.id/v1/transactions' => Http::response(['data' => [
+                'id' => '550e8400-e29b-41d4-a716-446655440099',
+                'orderId' => $order->invoice_number,
+                'amount' => $order->total,
+                'fee' => ['totalIdr' => 3400],
+                'totalPayment' => $order->total + 3400,
+                'paymentMethod' => 'VA',
+                'paymentUrl' => 'https://paywuz.id/pay/new-transaction',
+                'status' => 'pending',
+                'expiresAt' => now()->addHour()->toISOString(),
+            ]], 201),
+        ]);
+
+        $this->actingAs($buyer)
+            ->get(route('orders.change-payment-method', $order))
+            ->assertOk()
+            ->assertSee('Ganti Metode Bayar')
+            ->assertSee('Virtual Account (Pilih Bank)');
+
+        $this->post(route('orders.update-payment-method', $order), [
+            'gateway_payment_method' => 'VA',
+        ])->assertRedirect(route('orders.payment', $order));
+
+        $order->refresh();
+        $this->assertDatabaseCount('orders', 1);
+        $this->assertSame('VA', $order->gateway_payment_method);
+        $this->assertSame('550e8400-e29b-41d4-a716-446655440099', $order->payment_reference);
+        $this->assertSame('https://paywuz.id/pay/new-transaction', $order->payment_url);
+        $this->assertSame($order->total + 3400, $order->gateway_total);
+        $this->assertSame(PaymentStatus::Pending, $order->payment_status);
+        $this->assertSame(1, $order->histories()->where('action', 'payment_method_changed')->count());
+
+        Http::assertSent(fn ($request) => $request->method() === 'POST'
+            && $request->url() === 'https://api.paywuz.id/v1/transactions/KSP-TEST-PAYWUZ/cancel'
+            && $request->hasHeader('Authorization', 'Bearer '.$apiKey));
+        Http::assertSent(fn ($request) => $request->method() === 'POST'
+            && $request->url() === 'https://api.paywuz.id/v1/transactions'
+            && $request['orderId'] === $order->invoice_number
+            && $request['paymentMethod'] === 'VA');
+    }
+
     public function test_opening_pending_order_synchronizes_customer_settlement(): void
     {
         $this->enablePaywuz();

@@ -26,6 +26,7 @@
                 @else
                     <div class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm font-semibold text-red-700">URL pembayaran belum tersedia. Kembali ke detail pesanan untuk mencoba lagi.</div>
                 @endif
+                <a href="{{ route('orders.change-payment-method', $order) }}" class="mt-3 block rounded-xl border border-primary px-5 py-3 text-center text-sm font-bold text-primary transition hover:bg-blue-50"><i class="fas fa-rotate mr-2" aria-hidden="true"></i>Ganti Metode Bayar</a>
                 <a href="{{ route('orders.show', $order) }}" class="mt-4 block text-center text-sm font-semibold text-slate-500 hover:text-slate-900">Bayar nanti dari detail pesanan</a>
                 <p class="mt-5 text-center text-xs leading-5 text-slate-400">Pastikan halaman pembayaran memakai koneksi HTTPS. Status pesanan diperbarui otomatis setelah pembayaran berhasil.</p>
             </div>

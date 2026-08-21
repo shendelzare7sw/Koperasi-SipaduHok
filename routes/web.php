@@ -94,6 +94,8 @@ Route::middleware(['auth', 'active', 'role:pembeli'])->group(function () {
     Route::get('/pesanan', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/pesanan/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/pesanan/{order}/pembayaran', [OrderController::class, 'payment'])->name('orders.payment');
+    Route::get('/pesanan/{order}/ganti-metode-bayar', [OrderController::class, 'changePaymentMethod'])->name('orders.change-payment-method');
+    Route::post('/pesanan/{order}/ganti-metode-bayar', [OrderController::class, 'updatePaymentMethod'])->name('orders.update-payment-method');
     Route::post('/pesanan/{order}/sinkronkan-pembayaran', [OrderController::class, 'syncPayment'])->name('orders.sync-payment');
     Route::post('/pesanan/{order}/batalkan-pembayaran', [OrderController::class, 'cancelPayment'])->name('orders.cancel-payment');
     Route::get('/pesanan/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');

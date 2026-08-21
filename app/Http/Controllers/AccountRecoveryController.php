@@ -282,8 +282,16 @@ class AccountRecoveryController extends Controller
 
     private function sendRecoveryOtp(User $user, string $code): void
     {
-        Notification::route('mail', [$user->email => $user->name])
+        Notification::route('mail', $user->email)
             ->notify(new AccountRecoveryOtpNotification($code, $user->name, self::OTP_EXPIRES_MINUTES));
+
+        logger()->info('Recovery OTP mail accepted by mailer.', [
+            'to' => Str::mask($user->email, '*', 3, -8),
+            'mailer' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'scheme' => config('mail.mailers.smtp.scheme'),
+        ]);
     }
 
     private function maskEmail(string $email): string

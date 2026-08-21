@@ -55,7 +55,7 @@ class AuthenticationAndRolesTest extends TestCase
                 $otp = $notification->code;
 
                 return $channels === ['mail']
-                    && array_key_exists('wali@example.test', $notifiable->routes['mail']);
+                    && $notifiable->routes['mail'] === 'wali@example.test';
             }
         );
 

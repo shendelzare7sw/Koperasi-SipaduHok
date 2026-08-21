@@ -239,8 +239,16 @@ class AuthController extends Controller
 
     private function sendRegistrationOtp(string $email, string $name, string $code): void
     {
-        Notification::route('mail', [$email => $name])
+        Notification::route('mail', $email)
             ->notify(new RegistrationOtpNotification($code, $name, self::OTP_EXPIRES_MINUTES));
+
+        logger()->info('Registration OTP mail accepted by mailer.', [
+            'to' => Str::mask($email, '*', 3, -8),
+            'mailer' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'scheme' => config('mail.mailers.smtp.scheme'),
+        ]);
     }
 
     private function maskEmail(string $email): string

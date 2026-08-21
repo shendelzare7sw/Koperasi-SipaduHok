@@ -33,7 +33,7 @@ class PasswordAndPublicInformationTest extends TestCase
                 $otp = $notification->code;
 
                 return $channels === ['mail']
-                    && array_key_exists($buyer->email, $notifiable->routes['mail']);
+                    && $notifiable->routes['mail'] === $buyer->email;
             }
         );
 

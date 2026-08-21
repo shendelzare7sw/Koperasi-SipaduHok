@@ -96,24 +96,31 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
         $item = CartItem::create(['user_id' => $buyer->id, 'product_id' => $product->id, 'quantity' => 1]);
         Courier::create(['code' => 'main', 'name' => 'Kurir Toko', 'fee' => 10000, 'is_active' => true]);
 
-        Http::fake([
-            'https://api.paywuz.id/v1/payment-methods' => Http::response(['data' => [
-                ['code' => 'QRIS', 'name' => 'QRIS', 'type' => 'qris', 'fee' => ['flatIdr' => 290, 'percentBps' => 70], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
-                ['code' => 'VA', 'name' => 'Virtual Account (Pilih Bank)', 'type' => 'meta', 'fee' => ['flatIdr' => 0, 'percentBps' => 0], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
-                ['code' => 'BNIVA', 'name' => 'BNI VA', 'type' => 'virtual_account', 'fee' => ['flatIdr' => 3400, 'percentBps' => 0], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
-            ]]),
-            'https://api.paywuz.id/v1/transactions' => Http::response(['data' => [
-                'id' => '550e8400-e29b-41d4-a716-446655440000',
-                'orderId' => 'TSH-'.now()->format('Ymd').'-000001',
-                'amount' => 49360,
-                'fee' => ['totalIdr' => 640],
-                'totalPayment' => 50000,
-                'paymentMethod' => 'QRIS',
-                'paymentUrl' => 'https://paywuz.id/pay/550e8400-e29b-41d4-a716-446655440000',
-                'status' => 'pending',
-                'expiresAt' => now()->addHour()->toISOString(),
-            ]], 201),
-        ]);
+        Http::fake(function ($request) {
+            if ($request->url() === 'https://api.paywuz.id/v1/payment-methods') {
+                return Http::response(['data' => [
+                    ['code' => 'QRIS', 'name' => 'QRIS', 'type' => 'qris', 'fee' => ['flatIdr' => 290, 'percentBps' => 70], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
+                    ['code' => 'VA', 'name' => 'Virtual Account (Pilih Bank)', 'type' => 'meta', 'fee' => ['flatIdr' => 0, 'percentBps' => 0], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
+                    ['code' => 'BNIVA', 'name' => 'BNI VA', 'type' => 'virtual_account', 'fee' => ['flatIdr' => 3400, 'percentBps' => 0], 'limits' => ['minIdr' => 10000, 'maxIdr' => 50000000]],
+                ]]);
+            }
+
+            if ($request->url() === 'https://api.paywuz.id/v1/transactions') {
+                return Http::response(['data' => [
+                    'id' => '550e8400-e29b-41d4-a716-446655440000',
+                    'orderId' => $request['orderId'],
+                    'amount' => 49360,
+                    'fee' => ['totalIdr' => 640],
+                    'totalPayment' => 50000,
+                    'paymentMethod' => 'QRIS',
+                    'paymentUrl' => 'https://paywuz.id/pay/550e8400-e29b-41d4-a716-446655440000',
+                    'status' => 'pending',
+                    'expiresAt' => now()->addHour()->toISOString(),
+                ]], 201);
+            }
+
+            return Http::response([], 404);
+        });
 
         $this->actingAs($buyer)
             ->get(route('checkout.create', ['items' => [$item->id]]))
@@ -134,6 +141,7 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
         $order = Order::firstOrFail();
         $this->assertSame('paywuz', $order->payment_gateway);
         $this->assertStringStartsWith('TSH-', $order->invoice_number);
+        $this->assertMatchesRegularExpression('/^TSH-\d{8}-[A-Z0-9]{10}$/', $order->invoice_number);
         $this->assertSame('sandbox', $order->payment_environment);
         $this->assertSame('QRIS', $order->gateway_payment_method);
         $this->assertSame(50000, $order->gateway_total);
@@ -190,6 +198,45 @@ class CheckoutSelectionAndPaywuzTest extends TestCase
             ->assertSee('Selesaikan Pembayaran')
             ->assertDontSee('Buka Pembayaran Paywuz');
 
+        $this->assertDatabaseCount('orders', 1);
+    }
+
+    public function test_unopened_pending_payment_refreshes_invoice_to_avoid_paywuz_idempotency_collision(): void
+    {
+        $this->enablePaywuz();
+        [$buyer] = $this->buyerWithAddress(false);
+        $product = Product::factory()->create(['stock' => 10]);
+        $order = $this->paywuzOrder($buyer, $product);
+        $oldInvoice = $order->invoice_number;
+        $order->update([
+            'payment_reference' => null,
+            'payment_url' => null,
+            'gateway_total' => null,
+            'payment_status' => PaymentStatus::Unpaid,
+        ]);
+
+        Http::fake(fn ($request) => Http::response(['data' => [
+            'id' => '550e8400-e29b-41d4-a716-446655440088',
+            'orderId' => $request['orderId'],
+            'amount' => $order->total,
+            'fee' => ['totalIdr' => 3400],
+            'totalPayment' => $order->total + 3400,
+            'paymentMethod' => 'VA',
+            'paymentUrl' => 'https://paywuz.id/pay/refreshed-transaction',
+            'status' => 'pending',
+            'expiresAt' => now()->addHour()->toISOString(),
+        ]], 201));
+
+        $this->actingAs($buyer)
+            ->get(route('orders.payment', $order))
+            ->assertOk()
+            ->assertSee('Selesaikan Pembayaran');
+
+        $order->refresh();
+        $this->assertNotSame($oldInvoice, $order->invoice_number);
+        $this->assertMatchesRegularExpression('/^TSH-\d{8}-[A-Z0-9]{10}$/', $order->invoice_number);
+        $this->assertSame('https://paywuz.id/pay/refreshed-transaction', $order->payment_url);
+        $this->assertSame($order->total + 3400, $order->gateway_total);
         $this->assertDatabaseCount('orders', 1);
     }
 

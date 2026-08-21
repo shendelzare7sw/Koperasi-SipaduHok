@@ -13,6 +13,7 @@ use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Services\OrderNotificationService;
 use App\Services\Payments\PaymentConfiguration;
+use App\Support\OrderInvoiceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -270,7 +271,7 @@ class CheckoutController extends Controller
                 'total' => $total,
             ]);
 
-            $order->update(['invoice_number' => 'TSH-'.now()->format('Ymd').'-'.str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)]);
+            $order->update(['invoice_number' => OrderInvoiceNumber::generate()]);
 
             foreach ($cartItems as $cartItem) {
                 $product = $products->get($cartItem->product_id);

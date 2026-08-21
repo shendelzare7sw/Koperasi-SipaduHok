@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Services\OrderWorkflowService;
 use App\Services\Payments\PaymentConfiguration;
 use App\Services\PaywuzStatusService;
+use App\Support\OrderInvoiceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -70,6 +71,9 @@ class OrderController extends Controller
 
         if (blank($order->payment_url)) {
             try {
+                OrderInvoiceNumber::refreshIfUnopenedPayment($order);
+                $order->refresh();
+
                 $transaction = $gateway->createTransaction($order, (string) $order->gateway_payment_method);
                 $order->update([
                     'payment_reference' => $transaction['reference'],
@@ -220,6 +224,9 @@ class OrderController extends Controller
             if (filled($order->payment_reference)) {
                 $gateway->cancelTransaction($order);
             }
+
+            OrderInvoiceNumber::refreshIfUnopenedPayment($order);
+            $order->refresh();
 
             $order->forceFill([
                 'gateway_payment_method' => $selectedMethod['code'],

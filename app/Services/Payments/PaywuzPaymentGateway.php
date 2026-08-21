@@ -8,6 +8,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -62,6 +63,7 @@ class PaywuzPaymentGateway implements PaymentGateway
             'paymentMethod' => $paymentMethod,
             'expiryMinutes' => $this->configuration->expiryMinutes(),
             'redirectUrl' => route('orders.show', $order),
+            'feeByMerchant' => false,
             'metadata' => [
                 'order_id' => $order->id,
                 'buyer_id' => $order->user_id,
@@ -73,6 +75,19 @@ class PaywuzPaymentGateway implements PaymentGateway
             || blank($data['status'] ?? null)
             || ! hash_equals((string) $order->invoice_number, (string) ($data['orderId'] ?? ''))
             || ! $this->validator->amountMatches($order, $data)) {
+            Log::warning('Paywuz create transaction response failed validation.', [
+                'order_id' => $order->id,
+                'invoice_number' => $order->invoice_number,
+                'payment_method' => $paymentMethod,
+                'response_keys' => is_array($data) ? array_keys($data) : get_debug_type($data),
+                'response_order_id' => is_array($data) ? ($data['orderId'] ?? null) : null,
+                'response_amount' => is_array($data) ? ($data['amount'] ?? null) : null,
+                'response_total_payment' => is_array($data) ? ($data['totalPayment'] ?? null) : null,
+                'response_status' => is_array($data) ? ($data['status'] ?? null) : null,
+                'response_reference_present' => is_array($data) ? filled($data['id'] ?? null) : false,
+                'response_payment_url_present' => is_array($data) ? filled($data['paymentUrl'] ?? null) : false,
+            ]);
+
             throw new RuntimeException('Respons pembuatan transaksi Paywuz tidak lengkap.');
         }
 

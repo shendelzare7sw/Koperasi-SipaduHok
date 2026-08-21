@@ -61,6 +61,9 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'max:20', Rule::unique('users', 'phone')],
             'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ], [
+            'email.unique' => 'Email sudah digunakan akun lain. Silakan masuk atau gunakan email berbeda.',
+            'phone.unique' => 'Nomor HP sudah digunakan akun lain. Silakan gunakan nomor berbeda.',
         ]);
 
         $turnstile->verify($request, 'register');
